@@ -44,6 +44,8 @@ static void DotPrintNode(TreeNode* node, FILE* file, int rank)
 
     fprintf(file, "\"%p_node\" [label = ", node);
     DotPrintValue(node, file);
+    if(!node->correct) fprintf(file, ", fillcolor = \"red\"");
+
     fprintf(file, "]; \n");
 
     if (node->left)
@@ -84,9 +86,9 @@ static void DotPrintValue(TreeNode* node, FILE* file)
     {
         fprintf(file, "%s", GetOpName(node->value.operation));
     }
-    else if(node->type == NODE_VARIABLE)
+    else if(node->type == NODE_IDENTIFICATOR)
     {
-        fprintf(file, "%c", node->value.variable);
+        fprintf(file, "%s", node->value.identificator);
     }
     else if(node->type == NODE_CONSTANT)
     {

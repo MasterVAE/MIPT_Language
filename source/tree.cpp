@@ -31,6 +31,11 @@ void NodeDestroy(TreeNode* node)
     NodeDestroy(node->left);
     NodeDestroy(node->right);
 
+    if(node->type == NODE_IDENTIFICATOR)
+    {
+        free(node->value.identificator);
+    }
+
     free(node);
 }
 
@@ -40,6 +45,8 @@ TreeNode* CreateNode(NodeType type, NodeValue value,
     TreeNode* node = (TreeNode*)calloc(1, sizeof(TreeNode));
     node->type = type;
     node->value = value;
+
+    node->correct = true;
 
     node->left = left;
     node->right = right;

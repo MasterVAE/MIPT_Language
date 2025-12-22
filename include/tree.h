@@ -6,30 +6,38 @@
 enum NodeType
 {
     NODE_OPERATION,
-    NODE_VARIABLE,
+    NODE_IDENTIFICATOR,
     NODE_CONSTANT
 };
 
 enum Operation
 {
-    OP_UNKNOWN,
+    OP_EMPTY,
+    OP_VARIABLE,
+    OP_FUNCTION,
+    OP_ARGUMENT,
+    OP_BLOCK,
     OP_ADD,
     OP_SUB,
+    OP_MUL,
+    OP_DIV,
     OP_ASSIGN,
     OP_WHILE,
     OP_IF,
-    OP_BLOCK,
     OP_LINE,
-    OP_EMPTY,
     OP_IN,
     OP_OUT,
     OP_EQUAL,
-    OP_BIGGER
+    OP_BIGGER,
+    OP_SMALLER,
+    OP_NEQUAL,
+    OP_RETURN
 };
+
 
 union NodeValue
 {
-    char variable;
+    char* identificator;
     int constant;
     Operation operation;
 };
@@ -38,6 +46,8 @@ struct TreeNode
 {
     NodeType type;
     NodeValue value;
+
+    bool correct;
 
     TreeNode* left;
     TreeNode* right;

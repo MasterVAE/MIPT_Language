@@ -12,22 +12,36 @@ struct Oper
 
 static Oper OP_DATA[] = 
 {
-    {OP_ADD, "OP_ADD"},
-    {OP_SUB, "OP_SUB"},
-    {OP_ASSIGN, "OP_ASSIGN"},
-    {OP_WHILE, "OP_WHILE"},
-    {OP_IF, "OP_IF"},
-    {OP_BLOCK, "OP_BLOCK"},
-    {OP_LINE, "OP_LINE"},
-    {OP_EMPTY, "OP_EMPTY"},
-    {OP_IN, "OP_IN"},
-    {OP_OUT, "OP_OUT"},
-    {OP_BIGGER, "OP_BIGGER"},
-    {OP_EQUAL, "OP_EQUAL"}
+    {OP_ADD, "\"+\""},
+    {OP_SUB, "\"-\""},
+    {OP_MUL, "\"*\""},
+    {OP_DIV, "\"/\""},
+    {OP_ASSIGN, "ASSIGN"},
+    {OP_WHILE, "WHILE"},
+    {OP_BLOCK, "BLOCK"},
+    {OP_IF, "IF"},
+    {OP_LINE, "LINE"},
+    {OP_EMPTY, "EMPTY"},
+    {OP_VARIABLE, "VARIABLE"},
+    {OP_FUNCTION, "FUNCTION"},
+    {OP_ARGUMENT, "ARGUMENT"},
+    {OP_IN, "IN"},
+    {OP_OUT, "OUT"},
+    {OP_BIGGER, "BIGGER"},
+    {OP_SMALLER, "SMALLER"},
+    {OP_EQUAL, "EQUAL"},
+    {OP_NEQUAL, "NOT EQUAL"},
+    {OP_RETURN, "RETURN"}
 };
 
 const size_t OP_COUNT = sizeof(OP_DATA)/sizeof(OP_DATA[0]);
 
+const char SYSTEM_SYMBOLS[] = {'(', ')', '{', '}', ';', '<', '>', '=', '-', '+', '*', '/', ',', '\0'};
+
+const size_t SYSTEM_SYMBOLS_COUNT = sizeof(SYSTEM_SYMBOLS)/sizeof(SYSTEM_SYMBOLS[0]);
+
 const char* GetOpName(Operation op);
+
+bool IsSystem(char symbol);
 
 #endif // OP_DATA_H
