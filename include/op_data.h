@@ -18,7 +18,6 @@ static Oper OP_DATA[] =
     {OP_DIV, "\"/\""},
     {OP_ASSIGN, "ASSIGN"},
     {OP_WHILE, "WHILE"},
-    {OP_BLOCK, "BLOCK"},
     {OP_IF, "IF"},
     {OP_LINE, "LINE"},
     {OP_EMPTY, "EMPTY"},
@@ -30,13 +29,13 @@ static Oper OP_DATA[] =
     {OP_BIGGER, "BIGGER"},
     {OP_SMALLER, "SMALLER"},
     {OP_EQUAL, "EQUAL"},
-    {OP_NEQUAL, "NOT EQUAL"},
+    {OP_NEQUAL, "NOT_EQUAL"},
     {OP_RETURN, "RETURN"}
 };
 
 const size_t OP_COUNT = sizeof(OP_DATA)/sizeof(OP_DATA[0]);
 
-const char SYSTEM_SYMBOLS[] = {'(', ')', '{', '}', ';', '<', '>', '=', '-', '+', '*', '/', ',', '\0'};
+const char SYSTEM_SYMBOLS[] = {'(', ')', '{', '}', ';', '<', '>', '!', '=', '-', '+', '*', '/', ',', '\0'};
 
 const size_t SYSTEM_SYMBOLS_COUNT = sizeof(SYSTEM_SYMBOLS)/sizeof(SYSTEM_SYMBOLS[0]);
 

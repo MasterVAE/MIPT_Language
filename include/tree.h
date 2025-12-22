@@ -16,7 +16,6 @@ enum Operation
     OP_VARIABLE,
     OP_FUNCTION,
     OP_ARGUMENT,
-    OP_BLOCK,
     OP_ADD,
     OP_SUB,
     OP_MUL,
