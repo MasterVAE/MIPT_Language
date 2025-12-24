@@ -42,9 +42,10 @@ static void DotPrintNode(TreeNode* node, FILE* file, int rank)
     assert(node);
     assert(file);
 
-    fprintf(file, "\"%p_node\" [label = ", node);
+    fprintf(file, "\"%p_node\" [shape=record, label = \"{%p | ", node, node);
     DotPrintValue(node, file);
-    if(!node->correct) fprintf(file, ", fillcolor = \"red\"");
+    fprintf(file, "}\"");
+    if(!node->correct) fprintf(file, ", fillcolor=\"red\"");
 
     fprintf(file, "]; \n");
 

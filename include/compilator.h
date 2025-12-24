@@ -21,6 +21,9 @@ struct Nametable
 {
     char* names[8];
     size_t name_count = 8;
+
+    TreeNode** functions;
+    size_t function_count;
 };
 
 struct Compilator

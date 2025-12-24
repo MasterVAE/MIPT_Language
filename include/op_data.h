@@ -12,25 +12,25 @@ struct Oper
 
 static Oper OP_DATA[] = 
 {
-    {OP_ADD, "\"+\""},
-    {OP_SUB, "\"-\""},
-    {OP_MUL, "\"*\""},
-    {OP_DIV, "\"/\""},
-    {OP_ASSIGN, "ASSIGN"},
-    {OP_WHILE, "WHILE"},
-    {OP_IF, "IF"},
-    {OP_LINE, "LINE"},
-    {OP_EMPTY, "EMPTY"},
-    {OP_VARIABLE, "VARIABLE"},
-    {OP_FUNCTION, "FUNCTION"},
-    {OP_ARGUMENT, "ARGUMENT"},
-    {OP_IN, "IN"},
-    {OP_OUT, "OUT"},
-    {OP_BIGGER, "BIGGER"},
-    {OP_SMALLER, "SMALLER"},
-    {OP_EQUAL, "EQUAL"},
-    {OP_NEQUAL, "NOT_EQUAL"},
-    {OP_RETURN, "RETURN"}
+    {OP_ADD,        "+"},
+    {OP_SUB,        "-"},
+    {OP_MUL,        "*"},
+    {OP_DIV,        "/"},
+    {OP_ASSIGN,     "ASSIGN"},
+    {OP_WHILE,      "WHILE"},
+    {OP_IF,         "IF"},
+    {OP_LINE,       "LINE"},
+    {OP_EMPTY,      "EMPTY"},
+    {OP_VARIABLE,   "VARIABLE"},
+    {OP_FUNCTION,   "FUNCTION"},
+    {OP_ARGUMENT,   "ARGUMENT"},
+    {OP_IN,         "IN"},
+    {OP_OUT,        "OUT"},
+    {OP_BIGGER,     "BIGGER"},
+    {OP_SMALLER,    "SMALLER"},
+    {OP_EQUAL,      "EQUAL"},
+    {OP_NEQUAL,     "NOT_EQUAL"},
+    {OP_RETURN,     "RETURN"}
 };
 
 const size_t OP_COUNT = sizeof(OP_DATA)/sizeof(OP_DATA[0]);

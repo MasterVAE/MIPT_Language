@@ -25,17 +25,25 @@ static TreeNode* Identif    (char** programm);
 static TreeNode* System     (char** programm);
 static TreeNode* Argument   (char** programm);
 
-#define SYNTAX                                                  \
-{                                                               \
-    printf("%s:%d Syntax error\n%s\n", __FILE__, __LINE__, *programm);       \
-    return NULL;                                                \
+#define SYNTAX(node)                                                        \
+{                                                                           \
+    printf("%s:%d Syntax error\n%s\n", __FILE__, __LINE__, *programm);      \
+    NodeDestroy(node);                                                      \
+    return NULL;                                                            \
+}
+
+#define EXPECTED(symb, node)                                                                    \
+{                                                                                               \
+    if(**programm != symb)                                                                      \
+    {                                                                                           \
+        printf("%s:%d Syntax error: expected: %c\n%s\n", __FILE__, __LINE__, symb, *programm);  \
+        NodeDestroy(node);                                                                      \
+        return NULL;                                                                            \
+    }                                                                                           \
 }
 
 #ifdef DEBUG_
-    #define DEBUG_PRINT(func)                                       \
-    {                                                               \      
-        printf(func "\n%s\n", *programm);                           \
-    }   
+    #define DEBUG_PRINT(func) printf(func "\n%s\n", *programm);                            
 #else
     #define DEBUG_PRINT(func)
 #endif
@@ -97,7 +105,7 @@ static TreeNode* Programm(char** programm)
 
     TreeNode* node = Block(programm);
 
-    if(**programm != '\0') SYNTAX;
+    EXPECTED('\0', node);
 
     return node;
 }
@@ -109,7 +117,7 @@ static TreeNode* Block(char** programm)
 
     DEBUG_PRINT("BLOCK");
 
-    if(**programm != '{') SYNTAX;
+    EXPECTED('{', NULL);
 
     (*programm)++;
 
@@ -150,7 +158,7 @@ static TreeNode* Line(char** programm)
     TreeNode* node = Assigment(programm);
     if(!node) return NULL;
 
-    if(**programm != ';') SYNTAX;
+    EXPECTED(';', node);
 
     (*programm)++;
 
@@ -174,7 +182,7 @@ static TreeNode* Assigment(char** programm)
         (*programm)++;
 
         TreeNode* new_node = Assigment(programm);
-        if(!new_node) SYNTAX;
+        if(!new_node) SYNTAX(node);
 
         node = CreateNode(NODE_OPERATION, NodeValue {.operation = OP_ASSIGN}, node, new_node);
     }
@@ -198,7 +206,7 @@ static TreeNode* Expression(char** programm)
         {
             (*programm)+=2;
             TreeNode* new_node = Term(programm);
-            if(!new_node) SYNTAX;
+            if(!new_node) SYNTAX(node);
 
             node = CreateNode(NODE_OPERATION, NodeValue {.operation = OP_EQUAL}, node, new_node);
         }
@@ -206,7 +214,7 @@ static TreeNode* Expression(char** programm)
         {
             (*programm)+=2;
             TreeNode* new_node = Term(programm);
-            if(!new_node) SYNTAX;
+            if(!new_node) SYNTAX(node);
 
             node = CreateNode(NODE_OPERATION, NodeValue {.operation = OP_NEQUAL}, node, new_node);
         }
@@ -214,7 +222,7 @@ static TreeNode* Expression(char** programm)
         {
             (*programm)++;
             TreeNode* new_node = Term(programm);
-            if(!new_node) SYNTAX;
+            if(!new_node) SYNTAX(node);
 
             node = CreateNode(NODE_OPERATION, NodeValue {.operation = OP_BIGGER}, node, new_node);
         }
@@ -222,7 +230,7 @@ static TreeNode* Expression(char** programm)
         {
             (*programm)++;
             TreeNode* new_node = Term(programm);
-            if(!new_node) SYNTAX;
+            if(!new_node) SYNTAX(node);
 
             node = CreateNode(NODE_OPERATION, NodeValue {.operation = OP_SMALLER}, node, new_node);
         }
@@ -249,7 +257,7 @@ static TreeNode* Term(char** programm)
             (*programm)++;
 
             TreeNode* new_node = Primar(programm);
-            if(!new_node) SYNTAX;
+            if(!new_node) SYNTAX(node);
 
             node = CreateNode(NODE_OPERATION, NodeValue {.operation = OP_ADD}, node, new_node);
         }
@@ -258,7 +266,7 @@ static TreeNode* Term(char** programm)
            (*programm)++;
 
             TreeNode* new_node = Primar(programm);
-            if(!new_node) SYNTAX;
+            if(!new_node) SYNTAX(node);
 
             node = CreateNode(NODE_OPERATION, NodeValue {.operation = OP_SUB}, node, new_node);
         }
@@ -285,7 +293,7 @@ static TreeNode* Primar(char** programm)
             (*programm)++;
 
             TreeNode* new_node = Element(programm);
-            if(!new_node) SYNTAX;
+            if(!new_node) SYNTAX(node);
 
             node = CreateNode(NODE_OPERATION, NodeValue {.operation = OP_MUL}, node, new_node);
         }
@@ -294,7 +302,7 @@ static TreeNode* Primar(char** programm)
            (*programm)++;
 
             TreeNode* new_node = Element(programm);
-            if(!new_node) SYNTAX;
+            if(!new_node) SYNTAX(node);
             
             node = CreateNode(NODE_OPERATION, NodeValue {.operation = OP_DIV}, node, new_node);
         }
@@ -337,7 +345,7 @@ static TreeNode* Brackets(char** programm)
 
     node = Assigment(programm);
 
-    if(**programm != ')') SYNTAX;
+    EXPECTED(')', node);
 
     (*programm)++;
 
@@ -400,19 +408,6 @@ static TreeNode* System(char** programm)
 
         node = CreateNode(NODE_OPERATION, NodeValue {.operation = OP_WHILE}, node1, node2);
     }
-    else if(!strncmp(*programm, "func", 4))
-    {
-        (*programm) += 4;
-        
-        TreeNode* node1 = Identif(programm);
-        if(!node1) SYNTAX;
-
-        TreeNode* node2 = Argument(programm);
-        TreeNode* node3 = Block(programm);
-
-        node = CreateNode(NODE_OPERATION, NodeValue {.operation = OP_FUNCTION}, node1, 
-               CreateNode(NODE_OPERATION, NodeValue {.operation = OP_FUNCTION}, node2, node3));
-    }
     else if(!strncmp(*programm, "return", 6))
     {
         (*programm) += 6;
@@ -438,7 +433,17 @@ static TreeNode* FuncVar(char** programm)
     if(**programm == '(')
     {
         TreeNode* arg = Argument(programm);
-        if(!arg) SYNTAX;
+        if(!arg) SYNTAX(ident);
+
+        if(**programm == '{')
+        {
+            TreeNode* block = Block(programm);
+            if(!block) SYNTAX(ident);
+
+            return CreateNode(NODE_OPERATION, NodeValue {.operation = OP_FUNCTION}, ident, 
+               CreateNode(NODE_OPERATION, NodeValue {.operation = OP_FUNCTION}, arg, block));
+
+        }
         return CreateNode(NODE_OPERATION, NodeValue {.operation = OP_FUNCTION}, ident, arg);
     }
 
@@ -480,7 +485,7 @@ static TreeNode* Argument(char** programm)
 
     TreeNode* node = NULL;
 
-    if(**programm != '(') SYNTAX;
+    EXPECTED('(', NULL);
 
     (*programm)++;
 
@@ -490,12 +495,12 @@ static TreeNode* Argument(char** programm)
     {
         (*programm)++;
         TreeNode* node1 = Assigment(programm);
-        if(!node1) SYNTAX;
+        if(!node1) SYNTAX(node);
 
         node = CreateNode(NODE_OPERATION, NodeValue {.operation = OP_ARGUMENT}, node, node1);
     }
 
-    if(**programm != ')') SYNTAX;
+    EXPECTED(')', node);
 
     (*programm)++;
 

@@ -39,7 +39,7 @@ static TreeNode* VerifyNode(TreeNode* node)
     VerifyNode(node->left);
     VerifyNode(node->right);
 
-    if( CheckOperation(node, OP_ASSIGN) 
+    if(CheckOperation(node, OP_ASSIGN) 
     && !CheckOperation(node->left, OP_VARIABLE)) SYNTAX;
 
     if(CheckOperation(node, OP_WHILE)
@@ -53,7 +53,8 @@ static TreeNode* VerifyNode(TreeNode* node)
     if(CheckOperation(node, OP_FUNCTION))
     {
         if(node->left && node->left->type == NODE_IDENTIFICATOR
-        && CheckOperation(node->right, OP_FUNCTION))
+        && CheckOperation(node->right, OP_FUNCTION)
+        && node->right->left && node->right->left->type != NODE_IDENTIFICATOR)
         {
             if(!CheckOperation(node->parent, OP_LINE)) SYNTAX;
         }
