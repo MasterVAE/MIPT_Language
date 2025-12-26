@@ -1,0 +1,20 @@
+{
+    pow(a, b)
+    {
+        if(b > 1)
+        {
+            return (a * pow(a, b - 1));
+        };
+        return a;
+    };
+
+    print(value)
+    {
+        out(value);
+        return;
+    };
+
+    x = in;
+    y = in;
+    print(pow(x, y));
+}
