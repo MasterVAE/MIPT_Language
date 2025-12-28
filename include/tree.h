@@ -30,9 +30,13 @@ enum Operation
     OP_BIGGER,
     OP_SMALLER,
     OP_NEQUAL,
-    OP_RETURN
+    OP_RETURN,
+    OP_BRACKET_OPEN,
+    OP_BRACKET_CLOSE,
+    OP_FBRACKET_OPEN,
+    OP_FBRACKET_CLOSE,
+    OP_COMMA
 };
-
 
 union NodeValue
 {

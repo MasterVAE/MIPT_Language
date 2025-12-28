@@ -509,7 +509,6 @@ static TreeNode* Argument(char** programm)
     return node;
 }
 
-
 static size_t FileLength(FILE* file)
 {
     assert(file);
