@@ -5,184 +5,123 @@
 
 #include "read.h"
 #include "op_data.h"
+#include "tokenizator.h"
 
 // #define DEBUG_
 
-static size_t FileLength(FILE* file);
+static TreeNode* Programm   (Program* prog);
+static TreeNode* Block      (Program* prog);
+static TreeNode* Line       (Program* prog);
+static TreeNode* Assigment  (Program* prog);
+static TreeNode* Expression (Program* prog);
+static TreeNode* Term       (Program* prog);
+static TreeNode* Primar     (Program* prog);
+static TreeNode* Element    (Program* prog);
+static TreeNode* Brackets   (Program* prog);
+static TreeNode* Constant   (Program* prog);
+static TreeNode* FuncVar    (Program* prog);
+static TreeNode* Identif    (Program* prog);
+static TreeNode* System     (Program* prog);
+static TreeNode* Argument   (Program* prog);
 
-static TreeNode* Programm   (char** programm);
-static TreeNode* Block      (char** programm);
-static TreeNode* Line       (char** programm);
-static TreeNode* Assigment  (char** programm);
-static TreeNode* Expression (char** programm);
-static TreeNode* Term       (char** programm);
-static TreeNode* Primar     (char** programm);
-static TreeNode* Element    (char** programm);
-static TreeNode* Brackets   (char** programm);
-static TreeNode* Constant   (char** programm);
-static TreeNode* FuncVar    (char** programm);
-static TreeNode* Identif    (char** programm);
-static TreeNode* System     (char** programm);
-static TreeNode* Argument   (char** programm);
+static Token* CurrentToken(Program* prog);
 
-#define SYNTAX(node)                                                        \
+static bool CheckOperation(Token* token, Operation op);
+
+#define CURRENT CurrentToken(prog)
+
+#define SYNTAX                                                              \
 {                                                                           \
-    printf("%s:%d Syntax error\n%s\n", __FILE__, __LINE__, *programm);      \
-    NodeDestroy(node);                                                      \
+    fprintf(stderr, "%s:%d Syntax error\n", __FILE__, __LINE__);            \
     return NULL;                                                            \
 }
 
-#define EXPECTED(symb, node)                                                                    \
-{                                                                                               \
-    if(**programm != symb)                                                                      \
-    {                                                                                           \
-        printf("%s:%d Syntax error: expected: %c\n%s\n", __FILE__, __LINE__, symb, *programm);  \
-        NodeDestroy(node);                                                                      \
-        return NULL;                                                                            \
-    }                                                                                           \
-}
-
-#ifdef DEBUG_
-    #define DEBUG_PRINT(func) printf(func "\n%s\n", *programm);                            
-#else
-    #define DEBUG_PRINT(func)
-#endif
-
-Tree* ReadProgramm(const char* filename)
+Tree* ReadProgramm(Program* prog)
 {
-    assert(filename);
-
-    FILE* file = fopen(filename, "r");
-    if(!file) return NULL;
-
-    size_t lenght = FileLength(file);
-    char* buffer = (char*)calloc(lenght + 1, sizeof(char));
-    if(!buffer) return NULL;
-
-    fread(buffer, lenght, 1, file);
-    buffer[lenght] = '\0';
-
-    char* new_buffer = (char*)calloc(lenght + 1, sizeof(char));
-    if(!new_buffer)
-    {   
-        free(buffer);
-        return NULL;
-    }
-
-    size_t buffer_i = 0;
-    size_t new_buffer_i = 0;
-
-    while(buffer[buffer_i] != '\0')
-    {
-        if(!isspace(buffer[buffer_i]))
-        {
-            new_buffer[new_buffer_i++] = buffer[buffer_i];
-        }
-        buffer_i++;
-    }
-
-    free(buffer);
-
-    printf("BUFFER \n%s\n", new_buffer);
-
-    char* buffer_copy = new_buffer;
+    assert(prog);
 
     Tree* tree = CreateTree();
 
-    tree->root = Programm(&buffer_copy);
+    tree->root = Programm(prog);
 
-    free(new_buffer);
-    fclose(file);
     return tree;
 }
 
-static TreeNode* Programm(char** programm)
+static TreeNode* Programm(Program* prog)
 {
-    assert(programm);
-    assert(*programm);
+    assert(prog);
 
-    DEBUG_PRINT("PROGRAMM");
+    TreeNode* node = Block(prog);
 
-    TreeNode* node = Block(programm);
-
-    EXPECTED('\0', node);
-
+    if(prog->current_token != prog->token_count) SYNTAX;
+    
     return node;
 }
 
-static TreeNode* Block(char** programm)
+static TreeNode* Block(Program* prog)
 {
-    assert(programm);
-    assert(*programm);
+    assert(prog);
 
-    DEBUG_PRINT("BLOCK");
+    if(!CheckOperation(CURRENT, OP_FBRACKET_OPEN)) SYNTAX;
 
-    EXPECTED('{', NULL);
+    prog->current_token++;
 
-    (*programm)++;
+    TreeNode* node = Line(prog);
 
-    TreeNode* node = Line(programm);
-
-    if(node && **programm == '}')
+    if(node && CheckOperation(CURRENT, OP_FBRACKET_CLOSE))
     {
         node = CreateNode(NODE_OPERATION, NodeValue {.operation = OP_LINE}, 
                                                      node);
     }
 
-    if(!node && **programm == '}')
+    if(!node && CheckOperation(CURRENT, OP_FBRACKET_CLOSE))
     {
         node = CreateNode(NODE_OPERATION, NodeValue {.operation = OP_EMPTY});
     }
 
-    while(**programm != '}')
+    while(!CheckOperation(CURRENT, OP_FBRACKET_CLOSE))
     {
-        TreeNode* new_line = Line(programm);
+        TreeNode* new_line = Line(prog);
         if(!new_line) return NULL;
 
         node = CreateNode(NODE_OPERATION, NodeValue {.operation = OP_LINE}, 
                                                      node, new_line);
     }
 
-    (*programm)++;
+    prog->current_token++;
 
     return node;
 }
 
-static TreeNode* Line(char** programm)
+static TreeNode* Line(Program* prog)
 {
-    assert(programm);
-    assert(*programm);
+    assert(prog);
 
-    DEBUG_PRINT("LINE");
-
-    TreeNode* node = Assigment(programm);
+    TreeNode* node = Assigment(prog);
     if(!node) return NULL;
 
-    EXPECTED(';', node);
+    if(!CheckOperation(CURRENT, OP_LINE)) SYNTAX;
 
-    (*programm)++;
+    prog->current_token++;
 
     if(node) return node;
 
     return CreateNode(NODE_OPERATION, NodeValue {.operation = OP_EMPTY});
 }
 
-static TreeNode* Assigment(char** programm)
+static TreeNode* Assigment(Program* prog)
 {
-    assert(programm);
-    assert(*programm);
+    assert(prog);
 
-    DEBUG_PRINT("ASSIGMENT");
-
-    TreeNode* node = Expression(programm);
+    TreeNode* node = Expression(prog);
     if(!node) return NULL;
 
-    while(**programm == '=')
+    while(CheckOperation(CURRENT, OP_ASSIGN))
     {
-        (*programm)++;
+       prog->current_token++;
 
-        TreeNode* new_node = Assigment(programm);
-        if(!new_node) SYNTAX(node);
+        TreeNode* new_node = Assigment(prog);
+        if(!new_node) SYNTAX;
 
         node = CreateNode(NODE_OPERATION, NodeValue {.operation = OP_ASSIGN}, node, new_node);
     }
@@ -190,47 +129,48 @@ static TreeNode* Assigment(char** programm)
     return node;
 }
 
-static TreeNode* Expression(char** programm)
+static TreeNode* Expression(Program* prog)
 {
-    assert(programm);
-    assert(*programm);
+    assert(prog);
 
-    DEBUG_PRINT("EXPRESSION");
-
-    TreeNode* node = Term(programm);
+    TreeNode* node = Term(prog);
     if(!node) return NULL;
 
     while(1)
     {
-        if(!strncmp(*programm, "==", 2))
+        if(CheckOperation(CURRENT, OP_EQUAL))
         {
-            (*programm)+=2;
-            TreeNode* new_node = Term(programm);
-            if(!new_node) SYNTAX(node);
+            prog->current_token++;
+
+            TreeNode* new_node = Term(prog);
+            if(!new_node) SYNTAX;
 
             node = CreateNode(NODE_OPERATION, NodeValue {.operation = OP_EQUAL}, node, new_node);
         }
-        else if(!strncmp(*programm, "!=", 2))
+        else if(CheckOperation(CURRENT, OP_NEQUAL))
         {
-            (*programm)+=2;
-            TreeNode* new_node = Term(programm);
-            if(!new_node) SYNTAX(node);
+            prog->current_token++;
+
+            TreeNode* new_node = Term(prog);
+            if(!new_node) SYNTAX;
 
             node = CreateNode(NODE_OPERATION, NodeValue {.operation = OP_NEQUAL}, node, new_node);
         }
-        else if(**programm == '>')
+        else if(CheckOperation(CURRENT, OP_BIGGER))
         {
-            (*programm)++;
-            TreeNode* new_node = Term(programm);
-            if(!new_node) SYNTAX(node);
+            prog->current_token++;
+
+            TreeNode* new_node = Term(prog);
+            if(!new_node) SYNTAX;
 
             node = CreateNode(NODE_OPERATION, NodeValue {.operation = OP_BIGGER}, node, new_node);
         }
-        else if(**programm == '<')
+        else if(CheckOperation(CURRENT, OP_SMALLER))
         {
-            (*programm)++;
-            TreeNode* new_node = Term(programm);
-            if(!new_node) SYNTAX(node);
+            prog->current_token++;
+
+            TreeNode* new_node = Term(prog);
+            if(!new_node) SYNTAX;
 
             node = CreateNode(NODE_OPERATION, NodeValue {.operation = OP_SMALLER}, node, new_node);
         }
@@ -240,33 +180,30 @@ static TreeNode* Expression(char** programm)
     return node;
 }
 
-static TreeNode* Term(char** programm)
+static TreeNode* Term(Program* prog)
 {
-    assert(programm);
-    assert(*programm);
+    assert(prog);
 
-    DEBUG_PRINT("TERM");
-
-    TreeNode* node = Primar(programm);
+    TreeNode* node = Primar(prog);
     if(!node) return NULL;
 
     while(1)
     {
-        if(**programm == '+')
+        if(CheckOperation(CURRENT, OP_ADD))
         {
-            (*programm)++;
+            prog->current_token++;
 
-            TreeNode* new_node = Primar(programm);
-            if(!new_node) SYNTAX(node);
+            TreeNode* new_node = Primar(prog);
+            if(!new_node) SYNTAX;
 
             node = CreateNode(NODE_OPERATION, NodeValue {.operation = OP_ADD}, node, new_node);
         }
-        else if(**programm == '-')
+        else if(CheckOperation(CURRENT, OP_SUB))
         {
-           (*programm)++;
+           prog->current_token++;
 
-            TreeNode* new_node = Primar(programm);
-            if(!new_node) SYNTAX(node);
+            TreeNode* new_node = Primar(prog);
+            if(!new_node) SYNTAX;
 
             node = CreateNode(NODE_OPERATION, NodeValue {.operation = OP_SUB}, node, new_node);
         }
@@ -276,33 +213,30 @@ static TreeNode* Term(char** programm)
     return node;
 }
 
-static TreeNode* Primar(char** programm)
+static TreeNode* Primar(Program* prog)
 {
-    assert(programm);
-    assert(*programm);
+    assert(prog);
 
-    DEBUG_PRINT("PRIMAR");
-
-    TreeNode* node = Element(programm);
+    TreeNode* node = Element(prog);
     if(!node) return NULL;
 
     while(1)
     {
-        if(**programm == '*')
+        if(CheckOperation(CURRENT, OP_MUL))
         {
-            (*programm)++;
+            prog->current_token++;
 
-            TreeNode* new_node = Element(programm);
-            if(!new_node) SYNTAX(node);
+            TreeNode* new_node = Element(prog);
+            if(!new_node) SYNTAX;
 
             node = CreateNode(NODE_OPERATION, NodeValue {.operation = OP_MUL}, node, new_node);
         }
-        else if(**programm == '/')
+        else if(CheckOperation(CURRENT, OP_DIV))
         {
-           (*programm)++;
+            prog->current_token++;
 
-            TreeNode* new_node = Element(programm);
-            if(!new_node) SYNTAX(node);
+            TreeNode* new_node = Element(prog);
+            if(!new_node) SYNTAX;
             
             node = CreateNode(NODE_OPERATION, NodeValue {.operation = OP_DIV}, node, new_node);
         }
@@ -313,106 +247,94 @@ static TreeNode* Primar(char** programm)
 }
 
 
-static TreeNode* Element(char** programm)
+static TreeNode* Element(Program* prog)
 {
-    assert(programm);
-    assert(*programm);
-
-    DEBUG_PRINT("ELEMENT");
+    assert(prog);
 
     TreeNode* node = NULL;
 
-    node = Brackets(programm);
-    if(!node) node = Constant(programm);
-    if(!node) node = System(programm);
-    if(!node) node = FuncVar(programm);
+    node = Brackets(prog);
+    if(!node) node = Constant(prog);
+    if(!node) node = System(prog);
+    if(!node) node = FuncVar(prog);
 
     return node;
 }
 
-static TreeNode* Brackets(char** programm)
+static TreeNode* Brackets(Program* prog)
 {
-    assert(programm);
-    assert(*programm);
-
-    DEBUG_PRINT("BRACKETS");
+    assert(prog);
 
     TreeNode* node = NULL;
 
-    if(**programm != '(') return NULL;
+    if(!CheckOperation(CURRENT, OP_BRACKET_OPEN)) return NULL;
 
-    (*programm)++;
+    prog->current_token++;
 
-    node = Assigment(programm);
+    node = Assigment(prog);
 
-    EXPECTED(')', node);
+    if(!CheckOperation(CURRENT, OP_BRACKET_CLOSE)) SYNTAX;
 
-    (*programm)++;
+    prog->current_token++;
 
     return node;
 }
 
-static TreeNode* Constant(char** programm)
+static TreeNode* Constant(Program* prog)
 {
-    assert(programm);
-    assert(*programm);
+    assert(prog);
     
-    DEBUG_PRINT("CONSTANT");
+    if(CURRENT->type != NODE_CONSTANT)  return NULL;
 
-    int value = 0;
-    int count = 0;
-    sscanf(*programm, "%d%n", &value, &count);
+    TreeNode* node = CreateNode(NODE_CONSTANT, CURRENT->value);
 
-    if(count <= 0) return NULL;
+    prog->current_token++;
 
-    *programm += count;
-
-    return CreateNode(NODE_CONSTANT, NodeValue {.constant = value});
+    return node;
 }
 
-static TreeNode* System(char** programm)
+static TreeNode* System(Program* prog)
 {
-    assert(programm);
-    assert(*programm);
-
-    DEBUG_PRINT("SYSTEM");
+    assert(prog);
 
     TreeNode* node = NULL;
 
-    if(!strncmp(*programm, "in", 2))
+    if(CheckOperation(CURRENT, OP_IN))
     {
-        (*programm) += 2;
+        prog->current_token++;
+
         node = CreateNode(NODE_OPERATION, NodeValue {.operation = OP_IN});
     }
-    else if(!strncmp(*programm, "out", 3))
+    else if(CheckOperation(CURRENT, OP_OUT))
     {
-        (*programm) += 3;
-        node = CreateNode(NODE_OPERATION, NodeValue {.operation = OP_OUT}, Argument(programm));
-    }
-    else if(!strncmp(*programm, "if", 2))
-    {
-        (*programm) += 2;
+        prog->current_token++;
 
-        TreeNode* node1 = Argument(programm);
-        TreeNode* node2 = Block(programm);
+        node = CreateNode(NODE_OPERATION, NodeValue {.operation = OP_OUT}, Argument(prog));
+    }
+    else if(CheckOperation(CURRENT, OP_IF))
+    {
+        prog->current_token++;
+
+        TreeNode* node1 = Argument(prog);
+        TreeNode* node2 = Block(prog);
 
         node = CreateNode(NODE_OPERATION, NodeValue {.operation = OP_IF}, node1, node2);
 
     }
-    else if(!strncmp(*programm, "while", 5))
+    else if(CheckOperation(CURRENT, OP_WHILE))
     {
-        (*programm) += 5;
+        prog->current_token++;
         
-        TreeNode* node1 = Argument(programm);
-        TreeNode* node2 = Block(programm);
+        TreeNode* node1 = Argument(prog);
+        TreeNode* node2 = Block(prog);
 
         node = CreateNode(NODE_OPERATION, NodeValue {.operation = OP_WHILE}, node1, node2);
     }
-    else if(!strncmp(*programm, "return", 6))
+    else if(CheckOperation(CURRENT, OP_RETURN))
     {
-        (*programm) += 6;
+        prog->current_token++;
         
-        TreeNode* node1 = Assigment(programm);
+        TreeNode* node1 = Assigment(prog);
 
         node = CreateNode(NODE_OPERATION, NodeValue {.operation = OP_RETURN}, node1);
     }
@@ -420,25 +342,22 @@ static TreeNode* System(char** programm)
     return node;
 }
 
-static TreeNode* FuncVar(char** programm)
+static TreeNode* FuncVar(Program* prog)
 {
-    assert(programm);
-    assert(*programm);
+    assert(prog);
 
-    DEBUG_PRINT("FUNCTION");
-
-    TreeNode* ident = Identif(programm);
+    TreeNode* ident = Identif(prog);
     if(!ident) return NULL;
 
-    if(**programm == '(')
+    if(CheckOperation(CURRENT, OP_BRACKET_OPEN))
     {
-        TreeNode* arg = Argument(programm);
-        if(!arg) SYNTAX(ident);
+        TreeNode* arg = Argument(prog);
+        if(!arg) SYNTAX;
 
-        if(**programm == '{')
+        if(CheckOperation(CURRENT, OP_FBRACKET_OPEN))
         {
-            TreeNode* block = Block(programm);
-            if(!block) SYNTAX(ident);
+            TreeNode* block = Block(prog);
+            if(!block) SYNTAX;
 
             return CreateNode(NODE_OPERATION, NodeValue {.operation = OP_FUNCTION}, ident, 
                CreateNode(NODE_OPERATION, NodeValue {.operation = OP_FUNCTION}, arg, block));
@@ -451,71 +370,66 @@ static TreeNode* FuncVar(char** programm)
 
 }
 
-static TreeNode* Identif(char** programm)
+static TreeNode* Identif(Program* prog)
 {
-    assert(programm);
-    assert(*programm);
+    assert(prog);
 
-    DEBUG_PRINT("IDENTIFICATOR");
+    if(CURRENT->type != NODE_IDENTIFICATOR) return NULL;
 
-    TreeNode* node = NULL;
+    Token* current = CURRENT;
 
-    size_t len = 0;
-    char* start = *programm;
-    while(!IsSystem(**programm))
-    {
-        len += 1;
-        (*programm)++;
-    }
+    prog->current_token++;
 
-    if(len > 0)
-    {
-        node = CreateNode(NODE_IDENTIFICATOR, NodeValue {.identificator = strndup(start, len)});
-    }
-
-    return node;
+    return CreateNode(NODE_IDENTIFICATOR, 
+                      NodeValue {.identificator = current->value.identificator});
 }
 
-static TreeNode* Argument(char** programm)
+static TreeNode* Argument(Program* prog)
 {
-    assert(programm);
-    assert(*programm);
-
-    DEBUG_PRINT("ARGUMENT");
+    assert(prog);
 
     TreeNode* node = NULL;
 
-    EXPECTED('(', NULL);
+    if(!CheckOperation(CURRENT, OP_BRACKET_OPEN)) SYNTAX;
+    prog->current_token++;
 
-    (*programm)++;
+    node = Assigment(prog);
 
-    node = Assigment(programm);
-
-    while(**programm == ',')
+    while(CheckOperation(CURRENT, OP_COMMA))
     {
-        (*programm)++;
-        TreeNode* node1 = Assigment(programm);
-        if(!node1) SYNTAX(node);
+        prog->current_token++;
+
+        TreeNode* node1 = Assigment(prog);
+        if(!node1) SYNTAX;
 
         node = CreateNode(NODE_OPERATION, NodeValue {.operation = OP_ARGUMENT}, node, node1);
     }
 
-    EXPECTED(')', node);
+    if(!CheckOperation(CURRENT, OP_BRACKET_CLOSE)) SYNTAX;
 
-    (*programm)++;
+    prog->current_token++;
 
     if(!node) node = CreateNode(NODE_OPERATION, NodeValue {.operation = OP_EMPTY});
 
     return node;
 }
 
-static size_t FileLength(FILE* file)
+
+static Token* CurrentToken(Program* prog)
 {
-    assert(file);
+    assert(prog);
 
-    fseek(file, 0, SEEK_END);
-    size_t filesize = (size_t)ftell(file);
-    fseek(file, 0, SEEK_SET);
+    if(prog->current_token >= prog->token_count)
+    {
+        return NULL;
+    }
 
-    return filesize;
+    return &prog->tokens[prog->current_token];
+}
+
+static bool CheckOperation(Token* token, Operation op)
+{
+    assert(token);
+
+    return token->type == NODE_OPERATION && token->value.operation == op;
 }

@@ -29,6 +29,7 @@ Program* Tokenize(const char* filename)
     if(!prog) return NULL;
 
     prog->token_count = 0;
+    prog->current_token = 0;
     prog->tokens = (Token*)calloc(1, sizeof(Token));
 
     if(!prog->tokens)

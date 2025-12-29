@@ -16,6 +16,19 @@ const char* GetOpName(Operation operation)
     return NULL;
 }
 
+const char* GetOpColor(Operation operation)
+{
+    for(size_t op = 0; op < OP_COUNT; op++)
+    {
+        if(OP_DATA[op].op == operation)
+        {
+            return OP_DATA[op].color;
+        }
+    }
+
+    return NULL;
+}
+
 bool IsSystem(char symbol)
 {
     bool found = false;

@@ -2,7 +2,8 @@
 #define READ_H
 
 #include "tree.h"
+#include "tokenizator.h"
 
-Tree* ReadProgramm(const char* filename);
+Tree* ReadProgramm(Program* prog);
 
 #endif // READ_H

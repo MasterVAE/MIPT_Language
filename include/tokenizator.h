@@ -16,6 +16,7 @@ struct Program
 {
     Token* tokens;
     size_t token_count; 
+    size_t current_token;
 };
 
 Program* Tokenize(const char* filename);

@@ -11,6 +11,8 @@ static void SetNodeParent(TreeNode* node, TreeNode* parent);
 Tree* CreateTree()
 {
     Tree* tree = (Tree*)calloc(1, sizeof(Tree));
+    if(!tree) return NULL;
+
     tree->root = NULL;
 
     return tree;
@@ -43,6 +45,8 @@ TreeNode* CreateNode(NodeType type, NodeValue value,
                                     TreeNode* left, TreeNode* right, TreeNode* parent)
 {
     TreeNode* node = (TreeNode*)calloc(1, sizeof(TreeNode));
+    if(!node) return NULL;
+
     node->type = type;
     node->value = value;
 

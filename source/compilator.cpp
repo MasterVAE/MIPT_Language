@@ -27,6 +27,7 @@ void CompileTree(Tree* tree, FILE* file)
     assert(file);
 
     Compilator* compilator = CreateCompilator();
+    if(!compilator) return;
 
     CompileNode(tree->root, file, compilator);
 
@@ -123,17 +124,22 @@ static void CompileArguments(TreeNode* node, FILE* file, Compilator* compilator)
         }
         if(i == compilator->nametable.name_count)
         {
-            for(i = 0; i < compilator->nametable.name_count; i++)
+            compilator->nametable.name_count++;
+            char** new_names = (char**)realloc(compilator->nametable.names, 
+                                                sizeof(char*) * compilator->nametable.name_count);
+            if(!new_names)
             {
-                if(!compilator->nametable.names[i])
-                {
-                    compilator->nametable.names[i] = name;
-                    break;
-                }
+                free(compilator->nametable.names);
+                fprintf(stderr, "Memory error\n");
+
+                return;
             }
+
+            compilator->nametable.names = new_names;
+            compilator->nametable.names[compilator->nametable.name_count - 1] = name;
         }
 
-        PRINT2("POPR %s\n", REG_NAMES[i]);
+        PRINT2("POPM %lu\n", i);
     }
     else
     {
@@ -176,7 +182,7 @@ static void CompileNode(TreeNode* node, FILE* file, Compilator* compilator)
                 if(compilator->nametable.names[i] 
                 && !strcmp(name, compilator->nametable.names[i]))
                 {
-                    PRINT2("PUSHR %s\n", REG_NAMES[i]);
+                    PRINT2("PUSHM %lu\n", i);
                     found = true;
                     break;
                 }
@@ -220,6 +226,8 @@ static void CompileNode(TreeNode* node, FILE* file, Compilator* compilator)
         }
         case OP_ASSIGN:
         {
+            if(!node->left || !node->left->left) ERROR;
+
             char* name = node->left->left->value.identificator;
 
             size_t i = 0;
@@ -231,23 +239,27 @@ static void CompileNode(TreeNode* node, FILE* file, Compilator* compilator)
                     break;
                 }
             }
-
             if(i == compilator->nametable.name_count)
             {
-                for(i = 0; i < compilator->nametable.name_count; i++)
+                compilator->nametable.name_count++;
+                char** new_names = (char**)realloc(compilator->nametable.names, 
+                                                    sizeof(char*) * compilator->nametable.name_count);
+                if(!new_names)
                 {
-                    if(!compilator->nametable.names[i])
-                    {
-                        compilator->nametable.names[i] = name;
-                        break;
-                    }
+                    free(compilator->nametable.names);
+
+                    ERROR;
+                    return;
                 }
+
+                compilator->nametable.names = new_names;
+                compilator->nametable.names[compilator->nametable.name_count - 1] = name;
             }
 
             CompileNode(node->right, file, compilator);
 
-            PRINT2("POPR %s\n", REG_NAMES[i]);
-            PRINT2("PUSHR %s\n", REG_NAMES[i]);
+            PRINT2("POPM %lu\n", i);
+            PRINT2("PUSHM %lu\n", i);
 
             return;
         }
@@ -399,8 +411,15 @@ static void CompileNode(TreeNode* node, FILE* file, Compilator* compilator)
 static Compilator* CreateCompilator()
 {
     Compilator* comp = (Compilator*)calloc(1, sizeof(Compilator));
+    if(!comp) return NULL;
 
-    comp->nametable.name_count = 8;
+    comp->nametable.name_count = 0;
+    comp->nametable.names = (char**)calloc(1, sizeof(char*));
+    if(!comp->nametable.names)
+    {
+        free(comp);
+        return NULL;
+    }
     comp->label = 0;
 
     comp->nametable.function_count = 0;
@@ -412,5 +431,6 @@ static Compilator* CreateCompilator()
 static void DestroyCompilator(Compilator* compilator)
 {
     free(compilator->nametable.functions);
+    free(compilator->nametable.names);
     free(compilator);
 }

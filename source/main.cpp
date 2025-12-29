@@ -1,5 +1,3 @@
-#include <stdio.h>
-
 #include "tree.h"
 #include "read.h"
 #include "tree_logger.h"
@@ -20,10 +18,18 @@ int main()
         return 1;
     }
 
+    Tree* tree = ReadProgramm(prog);
+
     free(prog->tokens);
     free(prog);
 
-    Tree* tree = ReadProgramm(in_filename);
+    if(!tree || !tree->root) 
+    {
+        fprintf(stderr, "Error processing file %s\n", in_filename);
+
+        return 1;
+    }
+
     SetParents(tree);
 
     tree = Verify(tree);
@@ -44,4 +50,6 @@ int main()
     fclose(file);
 
     TreeDestroy(tree);
+
+    return 0;
 }

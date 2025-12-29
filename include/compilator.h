@@ -5,22 +5,10 @@
 
 #include "tree.h"
 
-static const char* REG_NAMES[] = 
-{
-    "SR1",
-    "SR2",
-    "SR3",
-    "SR4",
-    "SR5",
-    "SR6",
-    "SRX",
-    "SRY"
-};
-
 struct Nametable
 {
-    char* names[8];
-    size_t name_count = 8;
+    char** names;
+    size_t name_count;
 
     TreeNode** functions;
     size_t function_count;

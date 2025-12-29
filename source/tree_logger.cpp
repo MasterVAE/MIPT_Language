@@ -6,14 +6,16 @@
 #include "tree_logger.h"
 #include "op_data.h"
 
+//#define DEBUG_POINTER
+
 static const char* const DOT_FILENAME = "files/dot.dt";
-static const char* const TEX_FILENAME = "files/tex.tx";
 
 static void TreeDotDumpStart(FILE* file);
 static void TreeDotDumpEnd(FILE* file);
 
 static void DotPrintNode(TreeNode* node, FILE* file, int rank);
 static void DotPrintValue(TreeNode* node, FILE* file);
+static void DotPrintColor(TreeNode* node, FILE* file);
 
 void TreeDotDump(Tree* tree)
 {
@@ -42,10 +44,15 @@ static void DotPrintNode(TreeNode* node, FILE* file, int rank)
     assert(node);
     assert(file);
 
-    fprintf(file, "\"%p_node\" [shape=record, label = \"{%p | ", node, node);
+    fprintf(file, "\"%p_node\" [shape=record, label = \"", node);
+    
+    #ifdef DEBUG_POINTER
+        fprintf(file, "{%p | ", node);
+    #endif
     DotPrintValue(node, file);
     fprintf(file, "}\"");
-    if(!node->correct) fprintf(file, ", fillcolor=\"red\"");
+
+    DotPrintColor(node, file);
 
     fprintf(file, "]; \n");
 
@@ -94,5 +101,31 @@ static void DotPrintValue(TreeNode* node, FILE* file)
     else if(node->type == NODE_CONSTANT)
     {
         fprintf(file, "%d", node->value.constant);
+    }
+}
+
+
+static void DotPrintColor(TreeNode* node, FILE* file)
+{
+    assert(node);
+    assert(file);
+
+    if(!node->correct)
+    {
+        fprintf(file, ", fillcolor=\"red\"");
+        return;
+    }
+
+    if(node->type == NODE_OPERATION)
+    {
+        fprintf(file, ", fillcolor = \"%s\"", GetOpColor(node->value.operation));
+    }
+    else if(node->type == NODE_IDENTIFICATOR)
+    {
+        fprintf(file, ", fillcolor = \"green\"");
+    }
+    else if(node->type == NODE_CONSTANT)
+    {
+        fprintf(file, ", fillcolor = \"blueviolet\"");
     }
 }

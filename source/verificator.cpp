@@ -15,8 +15,8 @@ static bool CheckOperation(TreeNode* node, Operation op);
 
 Tree* Verify(Tree* tree)
 {
-    assert(tree);
-
+    if(!tree) return NULL;
+    
     if(!tree->root) 
     {
         printf("%s:%d Verificator error\n", __FILE__, __LINE__);
