@@ -30,17 +30,14 @@ const char* GetOpColor(Operation operation)
 }
 
 bool IsSystem(char symbol)
-{
-    bool found = false;
-    
+{   
     for(size_t i = 0; i < SYSTEM_SYMBOLS_COUNT; i++)
     {
         if(symbol == SYSTEM_SYMBOLS[i])
         {
-            found = true;
-            break;
+            return true;
         }
     }
 
-    return found;
+    return false;
 }

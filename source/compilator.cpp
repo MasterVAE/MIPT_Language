@@ -93,6 +93,11 @@ static void CompileFunctions(FILE* file, Compilator* compilator)
 
         CompileNode(func->right->right, file, compilator);
 
+
+        PRINT1("PUSHR SR2\n");
+        PRINT1("PUSH 1\n");
+        PRINT1("SUB\n");
+        PRINT1("POPR SR2\n");
         PRINT1("RET\n");
     }
 }
@@ -104,7 +109,11 @@ static void CompileArguments(TreeNode* node, FILE* file, Compilator* compilator)
 
     if(!node) return;
 
-    if(node->type == NODE_OPERATION && node->value.operation == OP_ARGUMENT)
+    if(node->type == NODE_OPERATION && node->value.operation == OP_EMPTY)
+    {
+        
+    }
+    else if(node->type == NODE_OPERATION && node->value.operation == OP_ARGUMENT)
     {
         CompileArguments(node->left, file, compilator);
         CompileArguments(node->right, file, compilator);
@@ -139,11 +148,16 @@ static void CompileArguments(TreeNode* node, FILE* file, Compilator* compilator)
             compilator->nametable.names[compilator->nametable.name_count - 1] = name;
         }
 
-        PRINT2("POPM %lu\n", i);
+        PRINT2("PUSH %lu\n", i);
+        PRINT1("PUSHR SR2\n");
+        PRINT1("PUSH 10\n");
+        PRINT1("MUL\n");
+        PRINT1("ADD\n");
+        PRINT1("POPR SR1\n");
+        PRINT1("POPM [SR1]\n");
     }
     else
     {
-        printf("%p\n", node);
         ERROR;
         return;
     }
@@ -182,7 +196,14 @@ static void CompileNode(TreeNode* node, FILE* file, Compilator* compilator)
                 if(compilator->nametable.names[i] 
                 && !strcmp(name, compilator->nametable.names[i]))
                 {
-                    PRINT2("PUSHM %lu\n", i);
+                    PRINT2("PUSH %lu\n", i);
+                    PRINT1("PUSHR SR2\n");
+                    PRINT1("PUSH 10\n");
+                    PRINT1("MUL\n");
+                    PRINT1("ADD\n");
+                    PRINT1("POPR SR1\n");
+                    PRINT1("PUSHM [SR1]\n");
+                    
                     found = true;
                     break;
                 }
@@ -258,8 +279,14 @@ static void CompileNode(TreeNode* node, FILE* file, Compilator* compilator)
 
             CompileNode(node->right, file, compilator);
 
-            PRINT2("POPM %lu\n", i);
-            PRINT2("PUSHM %lu\n", i);
+            PRINT2("PUSH %lu\n", i);
+            PRINT1("PUSHR SR2\n");
+            PRINT1("PUSH 10\n");
+            PRINT1("MUL\n");
+            PRINT1("ADD\n");
+            PRINT1("POPR SR1\n");
+            PRINT1("POPM [SR1]\n");
+            PRINT1("PUSHM [SR1]\n");
 
             return;
         }
@@ -378,6 +405,10 @@ static void CompileNode(TreeNode* node, FILE* file, Compilator* compilator)
 
             CompileNode(node->right, file, compilator);
 
+            PRINT1("PUSHR SR2\n");
+            PRINT1("PUSH 1\n");
+            PRINT1("ADD\n");
+            PRINT1("POPR SR2\n");
             PRINT2("CALL %s\n", name);
 
             return;
@@ -393,6 +424,10 @@ static void CompileNode(TreeNode* node, FILE* file, Compilator* compilator)
         {
             if(node->left)  CompileNode(node->left, file, compilator);
 
+            PRINT1("PUSHR SR2\n");
+            PRINT1("PUSH 1\n");
+            PRINT1("SUB\n");
+            PRINT1("POPR SR2\n");
             PRINT1("RET\n");
 
             return;

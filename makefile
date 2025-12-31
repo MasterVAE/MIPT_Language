@@ -33,6 +33,8 @@ all: bld
 
 run: $(TARGET)
 	@./$(TARGET)
+	@./asm.out
+	@./spu.out
 
 bld: $(TARGET)
 
