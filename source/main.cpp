@@ -8,9 +8,11 @@
 static const char* const in_filename = "files/prog.upl";
 static const char* const out_filename = "files/code.asm";
 
+// FIXME сначала посчитать переменные
+
 int main()
 {
-    Program* prog = Tokenize("files/prog.upl");
+    Program* prog = Tokenize(in_filename);
     if(!prog) 
     {
         fprintf(stderr, "Error tokenizing file %s\n", in_filename);

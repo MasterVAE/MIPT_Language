@@ -6,8 +6,7 @@
 #include "tree.h"
 #include "compilator.h"
 
-#define PRINT1(string1) fprintf(file, string1);
-#define PRINT2(string1, string2) fprintf(file, string1, string2);
+#define PRINT(...) fprintf(file, __VA_ARGS__);
 
 #define ERROR fprintf(stderr, "%s:%d Compilator error\n", __FILE__, __LINE__);
 
@@ -21,6 +20,19 @@ static void CompileSystemCode(FILE* file);
 static void CompileFunctions(FILE* file, Compilator* compilator);
 static void CompileArguments(TreeNode* node, FILE* file, Compilator* compilator);
 
+static bool CheckOperation(TreeNode* node, Operation op);
+static size_t VariableCount(Tree* tree);
+
+static size_t SearchInNametable(Compilator* compilator, char* identificator);
+
+struct VarCounter
+{
+    char** idents;
+    size_t idents_count;
+};
+
+static void NodeVariableCount(TreeNode* node, VarCounter* counter);
+
 void CompileTree(Tree* tree, FILE* file)
 {
     assert(tree);
@@ -28,6 +40,13 @@ void CompileTree(Tree* tree, FILE* file)
 
     Compilator* compilator = CreateCompilator();
     if(!compilator) return;
+
+    compilator->variable_count = VariableCount(tree);
+    if(!compilator->variable_count)
+    {
+        DestroyCompilator(compilator);
+        return;
+    }
 
     CompileNode(tree->root, file, compilator);
 
@@ -40,9 +59,11 @@ void CompileTree(Tree* tree, FILE* file)
 
 static void CompileSystemCode(FILE* file)
 {
-    PRINT1("HLT\n\n");
+    assert(file);
 
-    PRINT1("LABEL 0_EQUAL\n"
+    PRINT("HLT\n\n");
+
+    PRINT("LABEL 0_EQUAL\n"
           "JE 0_EQUAL_TRUE\n"
           "PUSH 0\n"
           "RET\n"
@@ -51,7 +72,7 @@ static void CompileSystemCode(FILE* file)
           "RET\n"
           "\n");
     
-    PRINT1("LABEL 0_NEQUAL\n"
+    PRINT("LABEL 0_NEQUAL\n"
           "JNE 0_NEQUAL_TRUE\n"
           "PUSH 0\n"
           "RET\n"
@@ -60,7 +81,7 @@ static void CompileSystemCode(FILE* file)
           "RET\n"
           "\n");
         
-    PRINT1("LABEL 0_SMALLER\n"
+    PRINT("LABEL 0_SMALLER\n"
           "JB 0_SMALLER_TRUE\n"
           "PUSH 0\n"
           "RET\n"
@@ -69,7 +90,7 @@ static void CompileSystemCode(FILE* file)
           "RET\n"
           "\n");
 
-    PRINT1("LABEL 0_BIGGER\n"
+    PRINT("LABEL 0_BIGGER\n"
           "JA 0_BIGGER_TRUE\n"
           "PUSH 0\n"
           "RET\n"
@@ -87,18 +108,17 @@ static void CompileFunctions(FILE* file, Compilator* compilator)
     for(size_t i = 0; i < compilator->nametable.function_count; i++)
     {
         TreeNode* func = compilator->nametable.functions[i];
-        PRINT2("LABEL %s\n", func->left->value.identificator);
+        PRINT("LABEL %s\n", func->left->value.identificator);
 
         CompileArguments(func->right->left, file, compilator);
 
         CompileNode(func->right->right, file, compilator);
 
-
-        PRINT1("PUSHR SR2\n");
-        PRINT1("PUSH 1\n");
-        PRINT1("SUB\n");
-        PRINT1("POPR SR2\n");
-        PRINT1("RET\n");
+        PRINT("PUSHR SR2\n");
+        PRINT("PUSH 1\n");
+        PRINT("SUB\n");
+        PRINT("POPR SR2\n");
+        PRINT("RET\n");
     }
 }
 
@@ -109,28 +129,17 @@ static void CompileArguments(TreeNode* node, FILE* file, Compilator* compilator)
 
     if(!node) return;
 
-    if(node->type == NODE_OPERATION && node->value.operation == OP_EMPTY)
-    {
-        
-    }
-    else if(node->type == NODE_OPERATION && node->value.operation == OP_ARGUMENT)
+    if(CheckOperation(node, OP_ARGUMENT))
     {
         CompileArguments(node->left, file, compilator);
         CompileArguments(node->right, file, compilator);
     }
-    else if(node->type == NODE_OPERATION && node->value.operation == OP_VARIABLE)
+    else if(CheckOperation(node, OP_VARIABLE))
     {
         char* name = node->left->value.identificator;
 
-        size_t i = 0;
-        for(i = 0; i < compilator->nametable.name_count; i++)
-        {
-            if(compilator->nametable.names[i] 
-            && !strcmp(name, compilator->nametable.names[i]))
-            {
-                break;
-            }
-        }
+        size_t i = SearchInNametable(compilator, name);
+        
         if(i == compilator->nametable.name_count)
         {
             compilator->nametable.name_count++;
@@ -148,13 +157,13 @@ static void CompileArguments(TreeNode* node, FILE* file, Compilator* compilator)
             compilator->nametable.names[compilator->nametable.name_count - 1] = name;
         }
 
-        PRINT2("PUSH %lu\n", i);
-        PRINT1("PUSHR SR2\n");
-        PRINT1("PUSH 10\n");
-        PRINT1("MUL\n");
-        PRINT1("ADD\n");
-        PRINT1("POPR SR1\n");
-        PRINT1("POPM [SR1]\n");
+        PRINT("PUSH %lu\n", i);
+        PRINT("PUSHR SR2\n");
+        PRINT("PUSH %lu\n", compilator->variable_count);
+        PRINT("MUL\n");
+        PRINT("ADD\n");
+        PRINT("POPR SR1\n");
+        PRINT("POPM [SR1]\n");
     }
     else
     {
@@ -174,7 +183,7 @@ static void CompileNode(TreeNode* node, FILE* file, Compilator* compilator)
 
     if(node->type == NODE_CONSTANT)
     {
-        PRINT2("PUSH %d\n", node->value.constant);
+        PRINT("PUSH %d\n", node->value.constant);
         return;
     }
 
@@ -196,13 +205,13 @@ static void CompileNode(TreeNode* node, FILE* file, Compilator* compilator)
                 if(compilator->nametable.names[i] 
                 && !strcmp(name, compilator->nametable.names[i]))
                 {
-                    PRINT2("PUSH %lu\n", i);
-                    PRINT1("PUSHR SR2\n");
-                    PRINT1("PUSH 10\n");
-                    PRINT1("MUL\n");
-                    PRINT1("ADD\n");
-                    PRINT1("POPR SR1\n");
-                    PRINT1("PUSHM [SR1]\n");
+                    PRINT("PUSH %lu\n", i);
+                    PRINT("PUSHR SR2\n");
+                    PRINT("PUSH %lu\n", compilator->variable_count);
+                    PRINT("MUL\n");
+                    PRINT("ADD\n");
+                    PRINT("POPR SR1\n");
+                    PRINT("PUSHM [SR1]\n");
                     
                     found = true;
                     break;
@@ -218,7 +227,7 @@ static void CompileNode(TreeNode* node, FILE* file, Compilator* compilator)
             CompileNode(node->left, file, compilator);
             CompileNode(node->right, file, compilator);
 
-            PRINT1("ADD\n")
+            PRINT("ADD\n")
             return;
         }
         case OP_SUB:
@@ -226,7 +235,7 @@ static void CompileNode(TreeNode* node, FILE* file, Compilator* compilator)
             CompileNode(node->left, file, compilator);
             CompileNode(node->right, file, compilator);
 
-            PRINT1("SUB\n")
+            PRINT("SUB\n")
             return;
         }
         case OP_MUL:
@@ -234,7 +243,7 @@ static void CompileNode(TreeNode* node, FILE* file, Compilator* compilator)
             CompileNode(node->left, file, compilator);
             CompileNode(node->right, file, compilator);
 
-            PRINT1("MUL\n")
+            PRINT("MUL\n")
             return;
         }
         case OP_DIV:
@@ -242,7 +251,7 @@ static void CompileNode(TreeNode* node, FILE* file, Compilator* compilator)
             CompileNode(node->left, file, compilator);
             CompileNode(node->right, file, compilator);
 
-            PRINT1("DIV\n")
+            PRINT("DIV\n")
             return;
         }
         case OP_ASSIGN:
@@ -251,15 +260,8 @@ static void CompileNode(TreeNode* node, FILE* file, Compilator* compilator)
 
             char* name = node->left->left->value.identificator;
 
-            size_t i = 0;
-            for(i = 0; i < compilator->nametable.name_count; i++)
-            {
-                if(compilator->nametable.names[i] 
-                && !strcmp(name, compilator->nametable.names[i]))
-                {
-                    break;
-                }
-            }
+            size_t i = SearchInNametable(compilator, name);
+    
             if(i == compilator->nametable.name_count)
             {
                 compilator->nametable.name_count++;
@@ -279,27 +281,27 @@ static void CompileNode(TreeNode* node, FILE* file, Compilator* compilator)
 
             CompileNode(node->right, file, compilator);
 
-            PRINT2("PUSH %lu\n", i);
-            PRINT1("PUSHR SR2\n");
-            PRINT1("PUSH 10\n");
-            PRINT1("MUL\n");
-            PRINT1("ADD\n");
-            PRINT1("POPR SR1\n");
-            PRINT1("POPM [SR1]\n");
-            PRINT1("PUSHM [SR1]\n");
+            PRINT("PUSH %lu\n", i);
+            PRINT("PUSHR SR2\n");
+            PRINT("PUSH %lu\n", compilator->variable_count);
+            PRINT("MUL\n");
+            PRINT("ADD\n");
+            PRINT("POPR SR1\n");
+            PRINT("POPM [SR1]\n");
+            PRINT("PUSHM [SR1]\n");
 
             return;
         }
         case OP_OUT:
         {
             CompileNode(node->left, file, compilator);
-            PRINT1("OUT\n");
+            PRINT("OUT\n");
 
             return;
         }
         case OP_IN:
         {
-            PRINT1("IN\n");
+            PRINT("IN\n");
 
             return;
         }
@@ -309,13 +311,13 @@ static void CompileNode(TreeNode* node, FILE* file, Compilator* compilator)
 
             CompileNode(node->left, file, compilator);
 
-            PRINT1("PUSH 0\n");
+            PRINT("PUSH 0\n");
 
-            PRINT2("JE %lu\n", lable);
+            PRINT("JE %lu\n", lable);
 
             CompileNode(node->right, file, compilator);
 
-            PRINT2("LABEL %lu\n", lable);
+            PRINT("LABEL %lu\n", lable);
 
             return;
         }
@@ -324,19 +326,19 @@ static void CompileNode(TreeNode* node, FILE* file, Compilator* compilator)
             size_t label1 = compilator->label++;
             size_t label2 = compilator->label++;
 
-            PRINT2("LABEL %lu\n", label1);
+            PRINT("LABEL %lu\n", label1);
 
             CompileNode(node->left, file, compilator);
 
-            PRINT1("PUSH 0\n");
+            PRINT("PUSH 0\n");
 
-            PRINT2("JE %lu\n", label2);
+            PRINT("JE %lu\n", label2);
 
             CompileNode(node->right, file, compilator);
 
-            PRINT2("JMP %lu\n", label1);
+            PRINT("JMP %lu\n", label1);
 
-            PRINT2("LABEL %lu\n", label2);
+            PRINT("LABEL %lu\n", label2);
 
             return;
         }
@@ -345,7 +347,7 @@ static void CompileNode(TreeNode* node, FILE* file, Compilator* compilator)
             CompileNode(node->left, file, compilator);
             CompileNode(node->right, file, compilator);
 
-            PRINT1("CALL 0_EQUAL\n");
+            PRINT("CALL 0_EQUAL\n");
 
             return;
         }
@@ -354,7 +356,7 @@ static void CompileNode(TreeNode* node, FILE* file, Compilator* compilator)
             CompileNode(node->left, file, compilator);
             CompileNode(node->right, file, compilator);
 
-            PRINT1("CALL 0_NEQUAL\n");
+            PRINT("CALL 0_NEQUAL\n");
 
             return;
         }
@@ -363,7 +365,7 @@ static void CompileNode(TreeNode* node, FILE* file, Compilator* compilator)
             CompileNode(node->left, file, compilator);
             CompileNode(node->right, file, compilator);
 
-            PRINT1("CALL 0_SMALLER\n");
+            PRINT("CALL 0_SMALLER\n");
 
             return;
         }
@@ -372,7 +374,7 @@ static void CompileNode(TreeNode* node, FILE* file, Compilator* compilator)
             CompileNode(node->left, file, compilator);
             CompileNode(node->right, file, compilator);
 
-            PRINT1("CALL 0_BIGGER\n");
+            PRINT("CALL 0_BIGGER\n");
 
             return;
         }
@@ -380,7 +382,7 @@ static void CompileNode(TreeNode* node, FILE* file, Compilator* compilator)
         {
             char* name = node->left->value.identificator;
 
-            if(node->right->type == NODE_OPERATION && node->right->value.operation == OP_FUNCTION
+            if(CheckOperation(node->right, OP_FUNCTION)
             && (!node->right->left || node->right->left->type != NODE_IDENTIFICATOR))
             {
                 for(size_t i = 0; i < compilator->nametable.function_count; i++)
@@ -396,7 +398,7 @@ static void CompileNode(TreeNode* node, FILE* file, Compilator* compilator)
 
                 compilator->nametable.functions 
                 = (TreeNode**)realloc(compilator->nametable.functions, 
-                    compilator->nametable.function_count * sizeof(TreeNode*));
+                                      compilator->nametable.function_count * sizeof(TreeNode*));
 
                 compilator->nametable.functions[compilator->nametable.function_count - 1] = node;
 
@@ -405,11 +407,11 @@ static void CompileNode(TreeNode* node, FILE* file, Compilator* compilator)
 
             CompileNode(node->right, file, compilator);
 
-            PRINT1("PUSHR SR2\n");
-            PRINT1("PUSH 1\n");
-            PRINT1("ADD\n");
-            PRINT1("POPR SR2\n");
-            PRINT2("CALL %s\n", name);
+            PRINT("PUSHR SR2\n");
+            PRINT("PUSH 1\n");
+            PRINT("ADD\n");
+            PRINT("POPR SR2\n");
+            PRINT("CALL %s\n", name);
 
             return;
         }
@@ -424,11 +426,11 @@ static void CompileNode(TreeNode* node, FILE* file, Compilator* compilator)
         {
             if(node->left)  CompileNode(node->left, file, compilator);
 
-            PRINT1("PUSHR SR2\n");
-            PRINT1("PUSH 1\n");
-            PRINT1("SUB\n");
-            PRINT1("POPR SR2\n");
-            PRINT1("RET\n");
+            PRINT("PUSHR SR2\n");
+            PRINT("PUSH 1\n");
+            PRINT("SUB\n");
+            PRINT("POPR SR2\n");
+            PRINT("RET\n");
 
             return;
         }
@@ -456,16 +458,123 @@ static Compilator* CreateCompilator()
         return NULL;
     }
     comp->label = 0;
+    comp->variable_count = 0;
 
     comp->nametable.function_count = 0;
     comp->nametable.functions = (TreeNode**)calloc(1, sizeof(TreeNode*));
+    if(!comp->nametable.functions)
+    {
+        free(comp->nametable.names);
+        free(comp);
+        return NULL;
+    }
 
     return comp;
 }
 
 static void DestroyCompilator(Compilator* compilator)
 {
+    if(!compilator) return;
+
     free(compilator->nametable.functions);
     free(compilator->nametable.names);
     free(compilator);
+}
+
+static bool CheckOperation(TreeNode* node, Operation op)
+{
+    return node && node->type == NODE_OPERATION && node->value.operation == op;
+}
+
+static size_t VariableCount(Tree* tree)
+{
+    VarCounter counter;
+    counter.idents_count = 1;
+    counter.idents = (char**)calloc(1, sizeof(TreeNode*));
+    if(!counter.idents) return 0;
+
+    NodeVariableCount(tree->root, &counter);
+
+    free(counter.idents);
+
+    return counter.idents_count;
+
+}
+
+static void NodeVariableCount(TreeNode* node, VarCounter* counter)
+{
+    assert(counter);
+
+    if(!node) return;
+
+    if(!counter->idents) return;
+
+    if(CheckOperation(node, OP_VARIABLE))
+    {
+        char* identificator = node->left->value.identificator;
+
+        bool added = false;
+
+        for(size_t i = 0; i < counter->idents_count; i++)
+        {
+            if(!counter->idents[i])
+            {
+                counter->idents[i] = identificator;
+                added = true;
+                break;
+            }
+            else
+            {
+                if(!strcmp(counter->idents[i], identificator))
+                {
+                    added = true;
+                }
+            }
+        }
+
+        if(!added)
+        {
+            counter->idents_count++;
+            char** new_idents = (char**)realloc(counter->idents, 
+                                                counter->idents_count * sizeof(char*));
+
+            if(!new_idents)
+            {
+                free(counter->idents);
+                counter->idents = NULL;
+                counter->idents_count = 0;
+                return;
+            }
+
+            new_idents[counter->idents_count - 1] = identificator;
+            counter->idents = new_idents;
+        }
+    }
+
+    NodeVariableCount(node->left, counter);
+    NodeVariableCount(node->right, counter);
+
+    if(!counter->idents)
+    {
+        counter->idents_count = 0;
+        return;
+    }
+}
+
+static size_t SearchInNametable(Compilator* compilator, char* identificator)
+{
+    assert(compilator);
+    assert(identificator);
+
+    size_t i = 0;
+    for(i = 0; i < compilator->nametable.name_count; i++)
+    {
+        if(compilator->nametable.names[i] 
+        && !strcmp(identificator, compilator->nametable.names[i]))
+        {
+            break;
+        }
+    }
+
+    return i;
 }

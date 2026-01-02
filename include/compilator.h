@@ -17,7 +17,8 @@ struct Nametable
 struct Compilator
 {
     Nametable nametable;
-    size_t label = 0;
+    size_t label;
+    size_t variable_count;
 };
 
 void CompileTree(Tree* tree, FILE* file);
