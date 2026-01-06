@@ -20,23 +20,19 @@ CFLAGS = -D _DEBUG -ggdb3 -std=c++17 -Wall -Wextra -Weffc++ -Waggressive-loop-op
 		 -pie -fPIE -Werror=vla\
 		 -fsanitize=address,alignment,bool,bounds,enum,float-cast-overflow,float-divide-by-zero,integer-divide-by-zero,leak,nonnull-attribute,null,object-size,return,returns-nonnull-attribute,shift,signed-integer-overflow,undefined,unreachable,vla-bound,vptr
 
-SOURCES = main.cpp read.cpp tree.cpp tree_logger.cpp op_data.cpp verificator.cpp compilator.cpp\
-			tokenizator.cpp
-OBJECTS := $(addprefix $(OBJ_DIR)/, $(SOURCES:.cpp=.o))
-TARGET = $(TARGET_DIR)/lang.out
 
-$(TARGET): $(OBJECTS) | $(TARGET_DIR) $(FILES_DIR)
-	@$(CC) $(CFLAGS) $^ -o $@
-	@echo "LINKED $@"
+export OBJ_DIR TARGET_DIR SOURCE_DIR CC CFLAGS
 
-all: bld
+include makefiles/compilator.mk
+include makefiles/descent.mk
 
-run: $(TARGET)
-	@./$(TARGET)
+all: compilator_b descent_b
+
+run: descent compilator
 	@./asm.out
 	@./spu.out
 
-bld: $(TARGET)
+bld: all
 
 clean:
 	@rm -rf $(OBJ_DIR)
@@ -46,6 +42,13 @@ clean:
 $(OBJ_DIR) $(TARGET_DIR) $(FILES_DIR):
 	@mkdir -p $@
 
+$(OBJ_DIR)/read:
+	@mkdir -p $@
+
+$(OBJ_DIR)/compile:
+	@mkdir -p $@
+
 $(OBJ_DIR)/%.o: $(SOURCE_DIR)/%.cpp | $(OBJ_DIR)
+	@mkdir -p $(dir $@)  # Создаем подкаталог для объектного файла
 	@$(CC) $(CFLAGS) -I$(INCLUDE_DIR) -c $< -o $@
 	@echo "COMPILED $<"

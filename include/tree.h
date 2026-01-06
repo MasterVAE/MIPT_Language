@@ -65,11 +65,14 @@ struct Tree
 
 Tree* CreateTree();
 void TreeDestroy(Tree* tree);
+void SaveTree(Tree* tree, const char* filename);
+Tree* LoadTree(const char* filename);
 void NodeDestroy(TreeNode* node);
 TreeNode* CreateNode(NodeType type, NodeValue value, 
                      TreeNode* left = NULL, TreeNode* right = NULL, TreeNode* parent = NULL);
 TreeNode* CopyNode(TreeNode* node);
 void SetParents(Tree* tree);
+
 
 static const size_t BUFFER_SIZE = 128;
 

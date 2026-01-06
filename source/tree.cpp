@@ -5,8 +5,16 @@
 #include <ctype.h>
 
 #include "tree.h"
+#include "op_data.h"
 
 static void SetNodeParent(TreeNode* node, TreeNode* parent);
+
+static void SaveNode(TreeNode* node, FILE* file);
+TreeNode* LoadNode(char** buffer);
+
+static size_t FileLength(FILE* file);
+
+const size_t identificator_lenght = 100;
 
 Tree* CreateTree()
 {
@@ -85,3 +93,204 @@ static void SetNodeParent(TreeNode* node, TreeNode* parent)
     SetNodeParent(node->right, node);
 }
 
+void SaveTree(Tree* tree, const char* filename)
+{
+    assert(tree);
+    assert(filename);
+
+    FILE* file = fopen(filename, "w+");
+    if(!file)
+    {
+        fprintf(stderr, "ERROR opening file %s", filename);
+        return;
+    }
+
+    SaveNode(tree->root, file);
+
+    fclose(file);
+}
+
+static void SaveNode(TreeNode* node, FILE* file)
+{   
+    assert(file);
+
+    if(!node) return;
+
+    if(node->type == NODE_IDENTIFICATOR)
+    {
+        fprintf(file, "%s", node->value.identificator);
+    }
+    else if(node->type == NODE_CONSTANT)
+    {
+        fprintf(file, "%i", node->value.constant);
+    }
+    else
+    {
+        fprintf(file, "%s", GetOpName(node->value.operation));
+    }
+
+    fprintf(file, "(");
+
+    SaveNode(node->left, file);
+
+    fprintf(file, "|");
+
+    SaveNode(node->right, file);
+
+    fprintf(file, ")");
+
+}
+
+Tree* LoadTree(const char* filename)
+{
+    assert(filename);
+
+    FILE* file = fopen(filename, "r+");
+    if(!file)
+    {
+        fprintf(stderr, "ERROR opening file %s", filename);
+        return NULL;
+    }
+
+    size_t lenght = FileLength(file);
+    char* buffer = (char*)calloc(lenght + 1, sizeof(char));
+    if(!buffer)
+    {
+        fclose(file);
+        fprintf(stderr, "ERROR allocating memory");
+        return NULL;
+    }
+
+    fread(buffer, lenght, 1, file);
+    buffer[lenght] = '\0';
+
+    fclose(file);
+
+    Tree* tree = CreateTree();
+    if(!tree)
+    {
+        free(buffer);
+        fprintf(stderr, "ERROR creating tree\n");
+        return NULL;
+    }
+
+    char* buffer_copy = buffer;
+    tree->root = LoadNode(&buffer_copy);
+
+
+    free(buffer);
+    return tree;
+}
+
+TreeNode* LoadNode(char** buffer)
+{
+    assert(buffer);
+    assert(*buffer);
+
+    TreeNode* node = NULL;
+
+    int value = 0;
+    int count = 0;
+    sscanf(*buffer, "%d%n", &value, &count);
+
+    (*buffer) += count;
+
+    bool found = false;
+
+    if(count > 0)
+    {
+        found = true;
+
+        node = CreateNode(NODE_CONSTANT, NodeValue {.constant = value}); 
+        if(!node)
+        {
+            fprintf(stderr, "ERROR reading tree 1\n");
+            return NULL;
+        }      
+    }
+    if(!found)
+    {
+        for(size_t i = 0; i < OP_COUNT; i++)
+        {
+            Oper data = OP_DATA[i];
+            if(!data.op_name) continue;
+
+            if(!strncmp(*buffer, data.op_name, strlen(data.op_name)))
+            {
+                node = CreateNode(NODE_OPERATION, NodeValue {.operation = data.op});
+                if(!node)
+                {
+                    fprintf(stderr, "ERROR reading tree 2\n");
+                    return NULL;
+                }   
+                found = true;
+                (*buffer) += strlen(data.op_name);
+                break;
+            }
+        }
+    }
+    if(!found)
+    {
+        char ident[identificator_lenght] = "";
+        if(!sscanf(*buffer, "%[^(|)]", ident)) return NULL;
+        
+        node = CreateNode(NODE_IDENTIFICATOR, NodeValue {.identificator = strdup(ident)});
+        if(!node)
+        {
+            fprintf(stderr, "ERROR reading tree 4\n");
+            return NULL;
+        } 
+
+        (*buffer) += strlen(ident);
+    }
+
+    if(**buffer != '(')
+    {
+        free(node);
+        fprintf(stderr, "ERROR reading tree 5\n");
+        return NULL;
+    } 
+
+    (*buffer)++;
+
+    TreeNode* node_left = LoadNode(buffer);
+
+    if(**buffer != '|')
+    {
+        free(node);
+        free(node_left);
+        fprintf(stderr, "ERROR reading tree 6\n");
+        return NULL;
+    } 
+
+    (*buffer)++;
+
+    TreeNode* node_right = LoadNode(buffer);
+
+    if(**buffer != ')')
+    {
+        free(node);
+        free(node_left);
+        free(node_right);
+        fprintf(stderr, "ERROR reading tree 7\n");
+        return NULL;
+    } 
+
+    (*buffer)++;
+
+    node->left = node_left;
+    node->right = node_right;
+
+    return node;
+}
+
+static size_t FileLength(FILE* file)
+{
+    assert(file);
+
+    fseek(file, 0, SEEK_END);
+    size_t filesize = (size_t)ftell(file);
+    fseek(file, 0, SEEK_SET);
+
+    return filesize;
+}

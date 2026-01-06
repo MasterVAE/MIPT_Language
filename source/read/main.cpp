@@ -2,13 +2,11 @@
 #include "read.h"
 #include "tree_logger.h"
 #include "verificator.h"
-#include "compilator.h"
 #include "tokenizator.h"
 
 static const char* const in_filename = "files/prog.upl";
 static const char* const out_filename = "files/code.asm";
-
-// FIXME сначала посчитать переменные
+static const char* const tree_filename = "files/tree.tr";
 
 int main()
 {
@@ -38,18 +36,7 @@ int main()
 
     TreeDotDump(tree);
 
-    FILE* file = fopen(out_filename, "w+");
-    if(!file)
-    {
-        fprintf(stderr, "Error opening file %s\n", out_filename);
-        TreeDestroy(tree);
-
-        return 1;
-    }
-
-    CompileTree(tree, file);
-
-    fclose(file);
+    SaveTree(tree, tree_filename);
 
     TreeDestroy(tree);
 
