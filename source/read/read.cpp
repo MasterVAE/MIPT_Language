@@ -159,41 +159,22 @@ static TreeNode* Expression(Program* prog)
 
     while(1)
     {
-        if(CheckOperation(CURRENT, OP_EQUAL))
+        if(CheckOperation(CURRENT, OP_EQUAL) 
+        || CheckOperation(CURRENT, OP_NEQUAL)
+        || CheckOperation(CURRENT, OP_SMALLER)
+        || CheckOperation(CURRENT, OP_BIGGER))
         {
             prog->current_token++;
 
             TreeNode* new_node = Term(prog);
             if(!new_node) SYNTAX;
 
-            node = CreateNode(NODE_OPERATION, NodeValue {.operation = OP_EQUAL}, node, new_node);
-        }
-        else if(CheckOperation(CURRENT, OP_NEQUAL))
-        {
-            prog->current_token++;
-
-            TreeNode* new_node = Term(prog);
-            if(!new_node) SYNTAX;
-
-            node = CreateNode(NODE_OPERATION, NodeValue {.operation = OP_NEQUAL}, node, new_node);
-        }
-        else if(CheckOperation(CURRENT, OP_BIGGER))
-        {
-            prog->current_token++;
-
-            TreeNode* new_node = Term(prog);
-            if(!new_node) SYNTAX;
-
-            node = CreateNode(NODE_OPERATION, NodeValue {.operation = OP_BIGGER}, node, new_node);
-        }
-        else if(CheckOperation(CURRENT, OP_SMALLER))
-        {
-            prog->current_token++;
-
-            TreeNode* new_node = Term(prog);
-            if(!new_node) SYNTAX;
-
-            node = CreateNode(NODE_OPERATION, NodeValue {.operation = OP_SMALLER}, node, new_node);
+            node = CreateNode(
+                        NODE_OPERATION, 
+                        NodeValue {.operation = CURRENT->value.operation}, 
+                        node, 
+                        new_node
+                    );
         }
         else break;
     }
@@ -243,23 +224,20 @@ static TreeNode* Primar(Program* prog)
 
     while(1)
     {
-        if(CheckOperation(CURRENT, OP_MUL))
+        if(CheckOperation(CURRENT, OP_MUL)
+        || CheckOperation(CURRENT, OP_DIV))
         {
             prog->current_token++;
 
             TreeNode* new_node = Element(prog);
             if(!new_node) SYNTAX;
 
-            node = CreateNode(NODE_OPERATION, NodeValue {.operation = OP_MUL}, node, new_node);
-        }
-        else if(CheckOperation(CURRENT, OP_DIV))
-        {
-            prog->current_token++;
-
-            TreeNode* new_node = Element(prog);
-            if(!new_node) SYNTAX;
-            
-            node = CreateNode(NODE_OPERATION, NodeValue {.operation = OP_DIV}, node, new_node);
+            node = CreateNode(
+                        NODE_OPERATION, 
+                        NodeValue {.operation = CURRENT->value.operation}, 
+                        node, 
+                        new_node
+                    );
         }
         else break;
     }

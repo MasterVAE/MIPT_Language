@@ -7,7 +7,7 @@
 
 struct Nametable
 {
-    char** names;
+    const char** names;
     size_t name_count;
 
     TreeNode** functions;
