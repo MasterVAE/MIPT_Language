@@ -1,4 +1,4 @@
-make Programm = Block, "\0"
+make Programm = [Line]*, "\0"
 
 Block = "{", [Line]*, "}"
 

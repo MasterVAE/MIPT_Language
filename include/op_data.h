@@ -20,10 +20,10 @@ static Oper OP_DATA[] =
     {OP_SUB,            "-",        "-",        "goldenrod3"},
     {OP_MUL,            "*",        "*",        "goldenrod3"},
     {OP_DIV,            "/",        "/",        "goldenrod3"},
-    {OP_BIGGER,         "BIGGER",   ">",        "gray51"},
-    {OP_SMALLER,        "SMALLER",  "<",        "gray51"},
-    {OP_EQUAL,          "EQUAL",    "==",       "gray51"},
-    {OP_NEQUAL,         "NOT_EQUAL","!=",       "gray51"},
+    {OP_BIGGER,         "BIGGER",   ">",        "bisque4"},
+    {OP_SMALLER,        "SMALLER",  "<",        "bisque4"},
+    {OP_EQUAL,          "EQUAL",    "==",       "bisque4"},
+    {OP_NEQUAL,         "NOT_EQUAL","!=",       "bisque4"},
     {OP_ASSIGN,         "ASSIGN",   "=",        "darkolivegreen3"},
     {OP_WHILE,          "WHILE",    "while",    "darkolivegreen3"},
     {OP_IF,             "IF",       "if",       "darkolivegreen3"},
@@ -35,11 +35,11 @@ static Oper OP_DATA[] =
     {OP_FBRACKET_OPEN,  NULL,         "{"},
     {OP_FBRACKET_CLOSE, NULL,         "}"},
     {OP_COMMA,          NULL,         ","},
-    {OP_LINE,           "LINE",     ";",        "cyan3"},
-    {OP_EMPTY,          "EMPTY",    NULL,       "cyan3"},
-    {OP_VARIABLE,       "VARIABLE", NULL,       "cyan3"},
-    {OP_FUNCTION,       "FUNCTION", NULL,       "cyan3"},
-    {OP_ARGUMENT,       "ARGUMENT", NULL,       "cyan3"}
+    {OP_LINE,           "LINE",     ";",        "aliceblue"},
+    {OP_EMPTY,          "EMPTY",    NULL,       "aliceblue"},
+    {OP_VARIABLE,       "VARIABLE", NULL,       "aliceblue"},
+    {OP_FUNCTION,       "FUNCTION", NULL,       "aliceblue"},
+    {OP_ARGUMENT,       "ARGUMENT", NULL,       "aliceblue"}
 };
 
 const size_t OP_COUNT = sizeof(OP_DATA)/sizeof(OP_DATA[0]);

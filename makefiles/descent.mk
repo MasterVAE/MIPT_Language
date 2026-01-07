@@ -11,4 +11,4 @@ $(TARGET_DESCENT): $(OBJECTS_DESCENT) | $(TARGET_DIR)
 descent_b: $(TARGET_DESCENT)
 
 descent: $(TARGET_DESCENT)
-	@./$(TARGET_DESCENT)
+	@./$(TARGET_DESCENT) files/prog.upl files/tree.tr

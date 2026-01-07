@@ -72,7 +72,9 @@ static void TreeDotDumpStart(FILE* file)
 {
     assert(file);
 
-    fprintf(file, "digraph G {"
+    fprintf(file, "digraph G {\n"
+                  "\t bgcolor=\"gray11\";\n"
+                  "\tedge [color=\"white\"];\n"
                   "\t node [shape= record, style=\"filled\"];\n"
                   "\t rankdir=TB;\n"
                 );
@@ -122,10 +124,10 @@ static void DotPrintColor(TreeNode* node, FILE* file)
     }
     else if(node->type == NODE_IDENTIFICATOR)
     {
-        fprintf(file, ", fillcolor = \"green\"");
+        fprintf(file, ", fillcolor = \"aquamarine2\"");
     }
     else if(node->type == NODE_CONSTANT)
     {
-        fprintf(file, ", fillcolor = \"blueviolet\"");
+        fprintf(file, ", fillcolor = \"darkorchid1\"");
     }
 }

@@ -32,8 +32,8 @@ make compilator
 ```
 or
 ```bash
-./build/descent.out
-./build/compilator.out
+./build/descent.out <code filename> <tree filename>
+./build/compilator.out <tree filename> <out filename>
 ./asm.out
 ./spu.out
 ```

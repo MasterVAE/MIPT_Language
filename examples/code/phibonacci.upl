@@ -1,20 +1,18 @@
+phib(n)
 {
-    phib(n)
+    if(n < 3)
     {
-        if(n < 3)
-        {
-            return 1;
-        };
-
-        return(phib(n - 1) + phib(n - 2));
+        return 1;
     };
+    
+    return(phib(n - 1) + phib(n - 2));
+};
 
-    x = in;
+x = in;
+a = 0;
 
-    a = 0;
-    while(a < x)
-    {
-        a = a + 1;
-        out(phib(a));
-    };
-}
+while(a < x)
+{
+    a = a + 1;
+    out(phib(a));
+};

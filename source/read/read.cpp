@@ -60,7 +60,18 @@ static TreeNode* Programm(Program* prog)
 {
     assert(prog);
 
-    TreeNode* node = Block(prog);
+    TreeNode* node = Line(prog);
+
+    if(!node) return CreateNode(NODE_OPERATION, NodeValue {.operation = OP_EMPTY});
+
+    while(prog->current_token < prog->token_count)
+    {
+        TreeNode* new_node = Line(prog);
+        if(!new_node) break;
+
+        node = CreateNode(NODE_OPERATION, NodeValue {.operation = OP_LINE}, 
+                                                    node, new_node);
+    }
 
     if(prog->current_token != prog->token_count) SYNTAX;
     

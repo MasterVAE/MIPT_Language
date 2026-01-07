@@ -2,12 +2,15 @@
 #include "tree_logger.h"
 #include "compilator.h"
 
-static const char* const out_filename = "files/code.asm";
-static const char* const tree_filename = "files/tree.tr";
-
-int main()
+int main(int argc, char** argv)
 {
-    // TODO arc agv
+    if(argc < 3)
+    {
+        fprintf(stderr, "ERROR: Not enough argument");
+    }
+
+    const char* tree_filename = argv[1];
+    const char* out_filename = argv[2];
 
     Tree* tree = LoadTree(tree_filename);
     if(!tree)

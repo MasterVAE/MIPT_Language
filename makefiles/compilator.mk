@@ -11,4 +11,4 @@ $(TARGET_COMPILATOR): $(OBJECTS_COMPILATOR) | $(TARGET_DIR)
 compilator_b: $(TARGET_COMPILATOR)
 
 compilator: $(TARGET_COMPILATOR)
-	@./$(TARGET_COMPILATOR)
+	@./$(TARGET_COMPILATOR) files/tree.tr files/code.asm
