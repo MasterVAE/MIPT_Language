@@ -5,24 +5,20 @@
 
 #include "tokenizator.h"
 #include "op_data.h"
+#include "library.h"
 #include "tree.h"
 
-static size_t FileLength(FILE* file);
-static Program* Read(Program* prog, char* buffer);
-static char* SkipSpaces(char* buffer);
-static Program* AddToken(Program* prog, NodeType type, NodeValue value);
+static Program* Read(Program* prog, const char* buffer);
+static size_t SkipSpaces(const char** buffer);
+static Program* AddToken(Program* prog, size_t line, NodeType type, NodeValue value);
 
-#define SKIP buffer = SkipSpaces(buffer);
+#define SKIP line = SkipSpaces(&buffer);
 
 Program* Tokenize(const char* filename)
 {
     assert(filename);
 
-    FILE* file = fopen(filename, "r");
-    if(!file) return NULL;
-
-    size_t lenght = FileLength(file);
-    char* buffer = (char*)calloc(lenght + 1, sizeof(char));
+    char* buffer = ReadFile(filename);
     if(!buffer) return NULL;
 
     Program* prog = (Program*)calloc(1, sizeof(Program));
@@ -32,28 +28,22 @@ Program* Tokenize(const char* filename)
     prog->current_token = 0;
     prog->tokens = (Token*)calloc(1, sizeof(Token));
 
-    if(!prog->tokens)
-    {
-        free(prog);
-        return NULL;
-    }
-
-    fread(buffer, lenght, 1, file);
-    buffer[lenght] = '\0';
+    if(!prog->tokens) return NULL;
 
     char* buffer_copy = buffer;
 
     Read(prog, buffer_copy);
 
     free(buffer);
-    fclose(file);
     return prog;
 }
 
-static Program* Read(Program* prog, char* buffer)
+static Program* Read(Program* prog, const char* buffer)
 {
     assert(prog);
     assert(buffer);
+
+    size_t line = 0;
 
     while(*buffer != '\0')
     {
@@ -67,7 +57,7 @@ static Program* Read(Program* prog, char* buffer)
 
         if(count > 0)
         {
-            prog = AddToken(prog, NODE_CONSTANT, NodeValue {.constant = value});
+            prog = AddToken(prog, line, NODE_CONSTANT, NodeValue {.constant = value});
             if(!prog) return NULL;
             
             SKIP;
@@ -84,7 +74,7 @@ static Program* Read(Program* prog, char* buffer)
 
             if(!strncmp(buffer, data.op_code, strlen(data.op_code)))
             {
-                prog = AddToken(prog, NODE_OPERATION, NodeValue {.operation = data.op});
+                prog = AddToken(prog, line, NODE_OPERATION, NodeValue {.operation = data.op});
                 if(!prog) return NULL;
             
                 SKIP;
@@ -97,7 +87,7 @@ static Program* Read(Program* prog, char* buffer)
         if(found) continue;
 
         size_t len = 0;
-        char* start = buffer;
+        const char* start = buffer;
         while(!IsSystem(*buffer))
         {
             len += 1;
@@ -106,7 +96,8 @@ static Program* Read(Program* prog, char* buffer)
 
         if(len > 0)
         {
-            prog = AddToken(prog, NODE_IDENTIFICATOR, NodeValue {.identificator = strndup(start, len)});
+            prog = AddToken(prog, line, NODE_IDENTIFICATOR, 
+                                        NodeValue {.identificator = strndup(start, len)});
             if(!prog) return NULL;
         }
         else
@@ -120,43 +111,40 @@ static Program* Read(Program* prog, char* buffer)
     return prog;
 }
 
-static Program* AddToken(Program* prog, NodeType type, NodeValue value)
+static Program* AddToken(Program* prog, size_t line, NodeType type, NodeValue value)
 {
+    assert(prog);
+
     prog->token_count++;
 
     Token* new_tokens = (Token*)realloc(prog->tokens, prog->token_count * sizeof(Token));
-    if(!new_tokens)
-    {
-        free(prog->tokens);
-        free(prog);
-        return NULL;
-    }
+    if(!new_tokens) return NULL;
 
     prog->tokens = new_tokens;
 
     Token* token = &prog->tokens[prog->token_count - 1];
+    token->line = line;
     token->type = type;
     token->value = value;
 
     return prog;
 }
 
-static char* SkipSpaces(char* buffer)
+static size_t SkipSpaces(const char** buffer)
 {
     assert(buffer);
 
-    while(isspace(*buffer)) buffer++;
+    static size_t line = 0;
 
-    return buffer;
-}
+    while(isspace(**buffer))
+    {
+        if(**buffer == '\n')
+        {
+            line++;
+        }
 
-static size_t FileLength(FILE* file)
-{
-    assert(file);
+        (*buffer)++;
+    }
 
-    fseek(file, 0, SEEK_END);
-    size_t filesize = (size_t)ftell(file);
-    fseek(file, 0, SEEK_SET);
-
-    return filesize;
+    return line;
 }

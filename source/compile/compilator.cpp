@@ -307,7 +307,7 @@ static void CompileNode(TreeNode* node, FILE* file, Compilator* compilator)
         }
         case OP_IF:
         {
-            size_t lable = compilator->label++;
+            size_t lable = compilator->current_label++;
 
             CompileNode(node->left, file, compilator);
 
@@ -323,8 +323,8 @@ static void CompileNode(TreeNode* node, FILE* file, Compilator* compilator)
         }
         case OP_WHILE:
         {
-            size_t label1 = compilator->label++;
-            size_t label2 = compilator->label++;
+            size_t label1 = compilator->current_label++;
+            size_t label2 = compilator->current_label++;
 
             PRINT("LABEL %lu\n", label1);
 
@@ -457,7 +457,7 @@ static Compilator* CreateCompilator()
         free(comp);
         return NULL;
     }
-    comp->label = 0;
+    comp->current_label = 0;
     comp->variable_count = 0;
 
     comp->nametable.function_count = 0;

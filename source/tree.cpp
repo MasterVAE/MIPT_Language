@@ -6,13 +6,12 @@
 
 #include "tree.h"
 #include "op_data.h"
+#include "library.h"
 
 static void SetNodeParent(TreeNode* node, TreeNode* parent);
 
 static void SaveNode(TreeNode* node, FILE* file);
 TreeNode* LoadNode(char** buffer);
-
-static size_t FileLength(FILE* file);
 
 const size_t identificator_lenght = 100;
 
@@ -145,26 +144,8 @@ Tree* LoadTree(const char* filename)
 {
     assert(filename);
 
-    FILE* file = fopen(filename, "r+");
-    if(!file)
-    {
-        fprintf(stderr, "ERROR opening file %s", filename);
-        return NULL;
-    }
-
-    size_t lenght = FileLength(file);
-    char* buffer = (char*)calloc(lenght + 1, sizeof(char));
-    if(!buffer)
-    {
-        fclose(file);
-        fprintf(stderr, "ERROR allocating memory");
-        return NULL;
-    }
-
-    fread(buffer, lenght, 1, file);
-    buffer[lenght] = '\0';
-
-    fclose(file);
+    char* buffer = ReadFile(filename);
+    if(!buffer) return NULL;
 
     Tree* tree = CreateTree();
     if(!tree)
@@ -176,7 +157,6 @@ Tree* LoadTree(const char* filename)
 
     char* buffer_copy = buffer;
     tree->root = LoadNode(&buffer_copy);
-
 
     free(buffer);
     return tree;
@@ -282,15 +262,4 @@ TreeNode* LoadNode(char** buffer)
     node->right = node_right;
 
     return node;
-}
-
-static size_t FileLength(FILE* file)
-{
-    assert(file);
-
-    fseek(file, 0, SEEK_END);
-    size_t filesize = (size_t)ftell(file);
-    fseek(file, 0, SEEK_SET);
-
-    return filesize;
 }

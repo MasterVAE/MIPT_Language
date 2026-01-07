@@ -17,7 +17,7 @@ struct Nametable
 struct Compilator
 {
     Nametable nametable;
-    size_t label;
+    size_t current_label;
     size_t variable_count;
 };
 

@@ -30,10 +30,19 @@ static bool CheckOperation(Token* token, Operation op);
 
 #define CURRENT CurrentToken(prog)
 
-#define SYNTAX                                                              \
-{                                                                           \
-    fprintf(stderr, "%s:%d Syntax error\n", __FILE__, __LINE__);            \
-    return NULL;                                                            \
+
+#define SYNTAX                                                                                  \
+{                                                                                               \
+    Token* token = CURRENT;                                                                     \
+    if(!token)                                                                                  \
+    {                                                                                           \
+        fprintf(stderr, " Syntax error %s:%d\n", __FILE__, __LINE__);                           \
+    }                                                                                           \
+    else                                                                                        \
+    {                                                                                           \
+        fprintf(stderr, " Syntax error %s:%d line: %lu\n", __FILE__, __LINE__, token->line);    \
+    }                                                                                           \
+    return NULL;                                                                                \
 }
 
 Tree* ReadProgramm(Program* prog)
@@ -68,15 +77,16 @@ static TreeNode* Block(Program* prog)
 
     TreeNode* node = Line(prog);
 
-    if(node && CheckOperation(CURRENT, OP_FBRACKET_CLOSE))
+    if(CheckOperation(CURRENT, OP_FBRACKET_CLOSE))
     {
-        node = CreateNode(NODE_OPERATION, NodeValue {.operation = OP_LINE}, 
-                                                     node);
-    }
-
-    if(!node && CheckOperation(CURRENT, OP_FBRACKET_CLOSE))
-    {
-        node = CreateNode(NODE_OPERATION, NodeValue {.operation = OP_EMPTY});
+        if(node) 
+        {
+            node = CreateNode(NODE_OPERATION, NodeValue {.operation = OP_LINE}, node);
+        }
+        if(!node)
+        {
+            CreateNode(NODE_OPERATION, NodeValue {.operation = OP_EMPTY});
+        } 
     }
 
     while(!CheckOperation(CURRENT, OP_FBRACKET_CLOSE))
@@ -118,7 +128,7 @@ static TreeNode* Assigment(Program* prog)
 
     while(CheckOperation(CURRENT, OP_ASSIGN))
     {
-       prog->current_token++;
+        prog->current_token++;
 
         TreeNode* new_node = Assigment(prog);
         if(!new_node) SYNTAX;
@@ -200,7 +210,7 @@ static TreeNode* Term(Program* prog)
         }
         else if(CheckOperation(CURRENT, OP_SUB))
         {
-           prog->current_token++;
+            prog->current_token++;
 
             TreeNode* new_node = Primar(prog);
             if(!new_node) SYNTAX;
@@ -359,8 +369,11 @@ static TreeNode* FuncVar(Program* prog)
             TreeNode* block = Block(prog);
             if(!block) SYNTAX;
 
-            return CreateNode(NODE_OPERATION, NodeValue {.operation = OP_FUNCTION}, ident, 
-               CreateNode(NODE_OPERATION, NodeValue {.operation = OP_FUNCTION}, arg, block));
+            return CreateNode(  
+                NODE_OPERATION, 
+                NodeValue {.operation = OP_FUNCTION}, ident, 
+                CreateNode(NODE_OPERATION, NodeValue {.operation = OP_FUNCTION}, arg, block)
+            );
 
         }
         return CreateNode(NODE_OPERATION, NodeValue {.operation = OP_FUNCTION}, ident, arg);

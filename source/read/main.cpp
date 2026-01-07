@@ -40,5 +40,7 @@ int main()
 
     TreeDestroy(tree);
 
+    printf("Descent complete\n");
+
     return 0;
 }

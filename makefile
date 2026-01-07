@@ -49,6 +49,6 @@ $(OBJ_DIR)/compile:
 	@mkdir -p $@
 
 $(OBJ_DIR)/%.o: $(SOURCE_DIR)/%.cpp | $(OBJ_DIR)
-	@mkdir -p $(dir $@)  # Создаем подкаталог для объектного файла
+	@mkdir -p $(dir $@) 
 	@$(CC) $(CFLAGS) -I$(INCLUDE_DIR) -c $< -o $@
 	@echo "COMPILED $<"

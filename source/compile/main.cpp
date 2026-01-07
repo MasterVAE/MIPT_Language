@@ -29,5 +29,8 @@ int main()
     fclose(file);
 
     TreeDestroy(tree);
+
+    printf("Compilation complete\n");
+
     return 0;
 }

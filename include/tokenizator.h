@@ -7,7 +7,7 @@
 
 struct Token
 {
-    char* line;
+    size_t line;
     NodeType type;
     NodeValue value;
 };
