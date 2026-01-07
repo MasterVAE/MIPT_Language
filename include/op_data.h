@@ -12,6 +12,8 @@ struct Oper
     const char* color;
 };
 
+// FIXME менее вырвиглазные цвета
+
 static Oper OP_DATA[] = 
 {
     {OP_ADD,            "+",        "+",        "goldenrod3"},

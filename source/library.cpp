@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 #include "library.h"
 
@@ -32,4 +33,11 @@ static size_t FileLength(FILE* file)
     fseek(file, 0, SEEK_SET);
 
     return filesize;
+}
+
+char* SkipSpaces(char* buffer)
+{
+    while (isspace(*buffer)) buffer++;
+    
+    return buffer;
 }

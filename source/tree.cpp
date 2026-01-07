@@ -10,10 +10,12 @@
 
 static void SetNodeParent(TreeNode* node, TreeNode* parent);
 
-static void SaveNode(TreeNode* node, FILE* file);
+static void SaveNode(TreeNode* node, FILE* file, size_t recursion);
 TreeNode* LoadNode(char** buffer);
 
 const size_t identificator_lenght = 100;
+
+#define SKIP *buffer = SkipSpaces(*buffer);
 
 Tree* CreateTree()
 {
@@ -104,12 +106,12 @@ void SaveTree(Tree* tree, const char* filename)
         return;
     }
 
-    SaveNode(tree->root, file);
+    SaveNode(tree->root, file, 1);
 
     fclose(file);
 }
 
-static void SaveNode(TreeNode* node, FILE* file)
+static void SaveNode(TreeNode* node, FILE* file, size_t recursion)
 {   
     assert(file);
 
@@ -128,13 +130,23 @@ static void SaveNode(TreeNode* node, FILE* file)
         fprintf(file, "%s", GetOpName(node->value.operation));
     }
 
+    fprintf(file, "\n");
+    for(size_t i = 0; i < recursion; i++)
+    {
+        fprintf(file, "\t");
+    }
     fprintf(file, "(");
 
-    SaveNode(node->left, file);
+    SaveNode(node->left, file, recursion + 1);
 
+    fprintf(file, "\n");
+    for(size_t i = 0; i < recursion; i++)
+    {
+        fprintf(file, "\t");
+    }
     fprintf(file, "|");
 
-    SaveNode(node->right, file);
+    SaveNode(node->right, file, recursion + 1);
 
     fprintf(file, ")");
 
@@ -168,6 +180,8 @@ TreeNode* LoadNode(char** buffer)
     assert(*buffer);
 
     TreeNode* node = NULL;
+
+    SKIP;
 
     int value = 0;
     int count = 0;
@@ -212,7 +226,7 @@ TreeNode* LoadNode(char** buffer)
     if(!found)
     {
         char ident[identificator_lenght] = "";
-        if(!sscanf(*buffer, "%[^(|)]", ident)) return NULL;
+        if(!sscanf(*buffer, "%[^(|)\n ]", ident)) return NULL;
         
         node = CreateNode(NODE_IDENTIFICATOR, NodeValue {.identificator = strdup(ident)});
         if(!node)
@@ -223,6 +237,8 @@ TreeNode* LoadNode(char** buffer)
 
         (*buffer) += strlen(ident);
     }
+
+    SKIP;
 
     if(**buffer != '(')
     {
@@ -235,6 +251,8 @@ TreeNode* LoadNode(char** buffer)
 
     TreeNode* node_left = LoadNode(buffer);
 
+    SKIP;
+
     if(**buffer != '|')
     {
         free(node);
@@ -246,6 +264,8 @@ TreeNode* LoadNode(char** buffer)
     (*buffer)++;
 
     TreeNode* node_right = LoadNode(buffer);
+
+    SKIP;
 
     if(**buffer != ')')
     {
