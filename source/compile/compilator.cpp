@@ -162,13 +162,13 @@ static void CompileArguments(TreeNode* node, FILE* file, Compilator* compilator)
             compilator->nametable.names[compilator->nametable.name_count - 1] = name;
         }
 
-        PRINT("PUSH %lu\n", i);
+        PRINT("\nPUSH %lu                 #VARIABLE %s\n", i, name);
         PRINT("PUSHR SR2\n");
         PRINT("PUSH %lu\n", compilator->variable_count);
         PRINT("MUL\n");
         PRINT("ADD\n");
         PRINT("POPR SR1\n");
-        PRINT("POPM [SR1]\n");
+        PRINT("POPM [SR1]\n\n");
     }
     else
     {
@@ -208,13 +208,13 @@ static void CompileNode(TreeNode* node, FILE* file, Compilator* compilator)
 
             if(i >= compilator->nametable.name_count) ERROR;
 
-            PRINT("PUSH %lu\n", i);
+            PRINT("\nPUSH %lu                 #VARIABLE %s\n", i, name);
             PRINT("PUSHR SR2\n");
             PRINT("PUSH %lu\n", compilator->variable_count);
             PRINT("MUL\n");
             PRINT("ADD\n");
             PRINT("POPR SR1\n");
-            PRINT("PUSHM [SR1]\n");
+            PRINT("PUSHM [SR1]\n\n");
                     
             return;
         }
@@ -277,14 +277,14 @@ static void CompileNode(TreeNode* node, FILE* file, Compilator* compilator)
 
             CompileNode(node->right, file, compilator);
 
-            PRINT("PUSH %lu\n", i);
+            PRINT("\nPUSH %lu                 #VARIABLE %s\n", i, name);
             PRINT("PUSHR SR2\n");
             PRINT("PUSH %lu\n", compilator->variable_count);
             PRINT("MUL\n");
             PRINT("ADD\n");
             PRINT("POPR SR1\n");
             PRINT("POPM [SR1]\n");
-            PRINT("PUSHM [SR1]\n");
+            PRINT("PUSHM [SR1]\n\n");
 
             return;
         }
