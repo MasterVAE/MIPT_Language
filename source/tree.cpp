@@ -11,7 +11,9 @@
 static void SetNodeParent(TreeNode* node, TreeNode* parent);
 
 static void SaveNode(TreeNode* node, FILE* file, size_t recursion);
-TreeNode* LoadNode(char** buffer);
+static TreeNode* LoadNode(char** buffer);
+
+static size_t SearchOpByName(const char* name);
 
 const size_t identificator_lenght = 100;
 
@@ -174,7 +176,7 @@ Tree* LoadTree(const char* filename)
     return tree;
 }
 
-TreeNode* LoadNode(char** buffer)
+static TreeNode* LoadNode(char** buffer)
 {
     assert(buffer);
     assert(*buffer);
@@ -204,24 +206,22 @@ TreeNode* LoadNode(char** buffer)
     }
     if(!found)
     {
-        for(size_t i = 0; i < OP_COUNT; i++)
+
+        size_t op_ind = SearchOpByName(*buffer);
+
+        if(op_ind < OP_COUNT)
         {
-            Oper data = OP_DATA[i];
-            if(!data.op_name) continue;
+            Oper data = OP_DATA[op_ind];
+            node = CreateNode(NODE_OPERATION, NodeValue {.operation = data.op});
 
-            if(!strncmp(*buffer, data.op_name, strlen(data.op_name)))
+            if(!node)
             {
-                node = CreateNode(NODE_OPERATION, NodeValue {.operation = data.op});
-                if(!node)
-                {
-                    fprintf(stderr, "ERROR reading tree 2\n");
-                    return NULL;
-                }   
-                found = true;
-                (*buffer) += strlen(data.op_name);
+                fprintf(stderr, "ERROR reading tree 2\n");
+                return NULL;
+            }   
 
-                break;
-            }
+            found = true;
+            (*buffer) += strlen(data.op_name);
         }
     }
     if(!found)
@@ -277,4 +277,24 @@ TreeNode* LoadNode(char** buffer)
     node->right = node_right;
 
     return node;
+}
+
+static size_t SearchOpByName(const char* name)
+{
+    assert(name);
+
+    size_t i = 0;
+
+    for(; i < OP_COUNT; i++)
+    {
+        Oper data = OP_DATA[i];
+        if(!data.op_name) continue;
+
+        if(!strncmp(name, data.op_name, strlen(data.op_name)))
+        {
+            return i;
+        }
+    }
+
+    return i;
 }

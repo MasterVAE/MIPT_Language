@@ -12,6 +12,8 @@ static Program* Read(Program* prog, const char* buffer);
 static size_t SkipSpaces(const char** buffer, bool isComment);
 static Program* AddToken(Program* prog, size_t line, NodeType type, NodeValue value);
 
+static size_t SearchOpByCode(const char* code);
+
 static const char* const COMMENT = "#";
 
 #define SKIP line = SkipSpaces(&buffer, false);
@@ -75,21 +77,17 @@ static Program* Read(Program* prog, const char* buffer)
 
         bool found = false;
 
-        for(size_t i = 0; i < OP_COUNT; i++)
+        size_t op_ind = SearchOpByCode(buffer);
+        if(op_ind < OP_COUNT)
         {
-            Oper data = OP_DATA[i];
-            if(!data.op_code) continue;
+            Oper data = OP_DATA[op_ind];
 
-            if(!strncmp(buffer, data.op_code, strlen(data.op_code)))
-            {
-                prog = AddToken(prog, line, NODE_OPERATION, NodeValue {.operation = data.op});
-                if(!prog) return NULL;
-            
-                SKIP;
-                found = true;
-                buffer += strlen(data.op_code);
-                break;
-            }
+            prog = AddToken(prog, line, NODE_OPERATION, NodeValue {.operation = data.op});
+            if(!prog) return NULL;
+        
+            SKIP;
+            found = true;
+            buffer += strlen(data.op_code);
         }
 
         if(found) continue;
@@ -166,3 +164,22 @@ static size_t SkipSpaces(const char** buffer, bool isComment)
     return line;
 }
 
+static size_t SearchOpByCode(const char* code)
+{
+    assert(code);
+
+    size_t i = 0;
+
+    for(; i < OP_COUNT; i++)
+    {
+        Oper data = OP_DATA[i];
+        if(!data.op_code) continue;
+
+        if(!strncmp(code, data.op_code, strlen(data.op_code)))
+        {
+            return i;
+        }
+    }
+
+    return i;
+}
