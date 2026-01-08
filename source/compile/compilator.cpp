@@ -65,9 +65,9 @@ static void CompileSystemCode(FILE* file)
 {
     assert(file);
 
-    PRINT("HLT\n\n");
+    PRINT("HLT                          #END OF MAIN PROG\n\n");
 
-    PRINT("LABEL 0_EQUAL\n"
+    PRINT("LABEL 0_EQUAL                #EQUAL CALL\n"
           "JE 0_EQUAL_TRUE\n"
           "PUSH 0\n"
           "RET\n"
@@ -76,7 +76,7 @@ static void CompileSystemCode(FILE* file)
           "RET\n"
           "\n");
     
-    PRINT("LABEL 0_NEQUAL\n"
+    PRINT("LABEL 0_NEQUAL               #NEQUAL CALL\n"
           "JNE 0_NEQUAL_TRUE\n"
           "PUSH 0\n"
           "RET\n"
@@ -85,7 +85,7 @@ static void CompileSystemCode(FILE* file)
           "RET\n"
           "\n");
         
-    PRINT("LABEL 0_SMALLER\n"
+    PRINT("LABEL 0_SMALLER              #SMALLER CALL\n"
           "JB 0_SMALLER_TRUE\n"
           "PUSH 0\n"
           "RET\n"
@@ -94,7 +94,7 @@ static void CompileSystemCode(FILE* file)
           "RET\n"
           "\n");
 
-    PRINT("LABEL 0_BIGGER\n"
+    PRINT("LABEL 0_BIGGER               #BIGGER CALL\n"
           "JA 0_BIGGER_TRUE\n"
           "PUSH 0\n"
           "RET\n"
@@ -112,7 +112,8 @@ static void CompileFunctions(FILE* file, Compilator* compilator)
     for(size_t i = 0; i < compilator->nametable.function_count; i++)
     {
         TreeNode* func = compilator->nametable.functions[i];
-        PRINT("LABEL %s\n", func->left->value.identificator);
+        PRINT("LABEL %s                     #FUNCTION %s\n", func->left->value.identificator,
+                                                             func->left->value.identificator);
 
         CompileArguments(func->right->left, file, compilator);
 

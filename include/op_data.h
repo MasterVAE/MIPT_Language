@@ -12,8 +12,6 @@ struct Oper
     const char* color;
 };
 
-// FIXME менее вырвиглазные цвета
-
 static Oper OP_DATA[] = 
 {
     {OP_ADD,            "+",        "+",        "goldenrod3"},
@@ -30,11 +28,11 @@ static Oper OP_DATA[] =
     {OP_IN,             "IN",       "in",       "darkolivegreen3"},
     {OP_OUT,            "OUT",      "out",      "darkolivegreen3"},
     {OP_RETURN,         "RETURN",   "return",   "darkolivegreen3"},
-    {OP_BRACKET_OPEN,   NULL,         "("},
-    {OP_BRACKET_CLOSE,  NULL,         ")"},
-    {OP_FBRACKET_OPEN,  NULL,         "{"},
-    {OP_FBRACKET_CLOSE, NULL,         "}"},
-    {OP_COMMA,          NULL,         ","},
+    {OP_BRACKET_OPEN,   NULL,       "("},
+    {OP_BRACKET_CLOSE,  NULL,       ")"},
+    {OP_FBRACKET_OPEN,  NULL,       "{"},
+    {OP_FBRACKET_CLOSE, NULL,       "}"},
+    {OP_COMMA,          NULL,       ","},
     {OP_LINE,           "LINE",     ";",        "aliceblue"},
     {OP_EMPTY,          "EMPTY",    NULL,       "aliceblue"},
     {OP_VARIABLE,       "VARIABLE", NULL,       "aliceblue"},

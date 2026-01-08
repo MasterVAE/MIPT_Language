@@ -9,10 +9,12 @@
 #include "tree.h"
 
 static Program* Read(Program* prog, const char* buffer);
-static size_t SkipSpaces(const char** buffer);
+static size_t SkipSpaces(const char** buffer, bool isComment);
 static Program* AddToken(Program* prog, size_t line, NodeType type, NodeValue value);
 
-#define SKIP line = SkipSpaces(&buffer);
+static const char* const COMMENT = "#";
+
+#define SKIP line = SkipSpaces(&buffer, false);
 
 Program* Tokenize(const char* filename)
 {
@@ -48,6 +50,12 @@ static Program* Read(Program* prog, const char* buffer)
     while(*buffer != '\0')
     {
         SKIP;
+
+        if(!strncmp(buffer, COMMENT, strlen(COMMENT)))
+        {
+            SkipSpaces(&buffer, true);
+            continue;
+        }
 
         int value = 0;
         int count = 0;
@@ -100,7 +108,7 @@ static Program* Read(Program* prog, const char* buffer)
                                         NodeValue {.identificator = strndup(start, len)});
             if(!prog) return NULL;
         }
-        else
+        else if(*buffer != '\0')
         {
             fprintf(stderr, "Unknown character %s\n", buffer);
         }
@@ -130,11 +138,20 @@ static Program* AddToken(Program* prog, size_t line, NodeType type, NodeValue va
     return prog;
 }
 
-static size_t SkipSpaces(const char** buffer)
+static size_t SkipSpaces(const char** buffer, bool isComment)
 {
     assert(buffer);
 
     static size_t line = 0;
+
+    if(isComment)
+    {
+        while(**buffer != '\n') (*buffer)++;
+
+        (*buffer)++;
+        line++;
+        return line;
+    }
 
     while(isspace(**buffer))
     {
@@ -148,3 +165,4 @@ static size_t SkipSpaces(const char** buffer)
 
     return line;
 }
+

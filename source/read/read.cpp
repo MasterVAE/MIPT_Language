@@ -164,6 +164,7 @@ static TreeNode* Expression(Program* prog)
         || CheckOperation(CURRENT, OP_SMALLER)
         || CheckOperation(CURRENT, OP_BIGGER))
         {
+            Operation current_operation = CURRENT->value.operation;
             prog->current_token++;
 
             TreeNode* new_node = Term(prog);
@@ -171,10 +172,12 @@ static TreeNode* Expression(Program* prog)
 
             node = CreateNode(
                         NODE_OPERATION, 
-                        NodeValue {.operation = CURRENT->value.operation}, 
+                        NodeValue {.operation = current_operation}, 
                         node, 
                         new_node
                     );
+            
+            
         }
         else break;
     }
@@ -227,6 +230,7 @@ static TreeNode* Primar(Program* prog)
         if(CheckOperation(CURRENT, OP_MUL)
         || CheckOperation(CURRENT, OP_DIV))
         {
+            Operation current_operation = CURRENT->value.operation;
             prog->current_token++;
 
             TreeNode* new_node = Element(prog);
@@ -234,7 +238,7 @@ static TreeNode* Primar(Program* prog)
 
             node = CreateNode(
                         NODE_OPERATION, 
-                        NodeValue {.operation = CURRENT->value.operation}, 
+                        NodeValue {.operation = current_operation}, 
                         node, 
                         new_node
                     );

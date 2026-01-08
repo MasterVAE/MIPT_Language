@@ -219,6 +219,7 @@ TreeNode* LoadNode(char** buffer)
                 }   
                 found = true;
                 (*buffer) += strlen(data.op_name);
+
                 break;
             }
         }
@@ -227,7 +228,7 @@ TreeNode* LoadNode(char** buffer)
     {
         char ident[identificator_lenght] = "";
         if(!sscanf(*buffer, "%[^(|)\n ]", ident)) return NULL;
-        
+
         node = CreateNode(NODE_IDENTIFICATOR, NodeValue {.identificator = strdup(ident)});
         if(!node)
         {
@@ -242,8 +243,7 @@ TreeNode* LoadNode(char** buffer)
 
     if(**buffer != '(')
     {
-        free(node);
-        fprintf(stderr, "ERROR reading tree 5\n");
+        fprintf(stderr, "ERROR reading tree 5 %s\n", *buffer);
         return NULL;
     } 
 
@@ -255,8 +255,6 @@ TreeNode* LoadNode(char** buffer)
 
     if(**buffer != '|')
     {
-        free(node);
-        free(node_left);
         fprintf(stderr, "ERROR reading tree 6\n");
         return NULL;
     } 
@@ -269,10 +267,7 @@ TreeNode* LoadNode(char** buffer)
 
     if(**buffer != ')')
     {
-        free(node);
-        free(node_left);
-        free(node_right);
-        fprintf(stderr, "ERROR reading tree 7\n");
+        fprintf(stderr, "ERROR reading tree 7 %s\n", *buffer);
         return NULL;
     } 
 

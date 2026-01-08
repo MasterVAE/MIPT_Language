@@ -1,4 +1,4 @@
-phib(n)
+phib(n)   #recursive phibonacci fucntion
 {
     if(n < 3)
     {

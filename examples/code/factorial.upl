@@ -1,4 +1,4 @@
-fact(n)
+fact(n)   #recursive factorial function
 {
     if(n == 1)
     {
