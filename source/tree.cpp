@@ -12,8 +12,7 @@ static void SetNodeParent(TreeNode* node, TreeNode* parent);
 
 static void SaveNode(TreeNode* node, FILE* file, size_t recursion);
 static TreeNode* LoadNode(char** buffer);
-
-static size_t SearchOpByName(const char* name);
+static TreeNode* LoadNodeValue(char** buffer);
 
 const size_t identificator_lenght = 100;
 
@@ -181,63 +180,8 @@ static TreeNode* LoadNode(char** buffer)
     assert(buffer);
     assert(*buffer);
 
-    TreeNode* node = NULL;
-
-    SKIP;
-
-    int value = 0;
-    int count = 0;
-    sscanf(*buffer, "%d%n", &value, &count);
-
-    (*buffer) += count;
-
-    bool found = false;
-
-    if(count > 0)
-    {
-        found = true;
-
-        node = CreateNode(NODE_CONSTANT, NodeValue {.constant = value}); 
-        if(!node)
-        {
-            fprintf(stderr, "ERROR reading tree 1\n");
-            return NULL;
-        }      
-    }
-    if(!found)
-    {
-
-        size_t op_ind = SearchOpByName(*buffer);
-
-        if(op_ind < OP_COUNT)
-        {
-            Oper data = OP_DATA[op_ind];
-            node = CreateNode(NODE_OPERATION, NodeValue {.operation = data.op});
-
-            if(!node)
-            {
-                fprintf(stderr, "ERROR reading tree 2\n");
-                return NULL;
-            }   
-
-            found = true;
-            (*buffer) += strlen(data.op_name);
-        }
-    }
-    if(!found)
-    {
-        char ident[identificator_lenght] = "";
-        if(!sscanf(*buffer, "%[^(|)\n ]", ident)) return NULL;
-
-        node = CreateNode(NODE_IDENTIFICATOR, NodeValue {.identificator = strdup(ident)});
-        if(!node)
-        {
-            fprintf(stderr, "ERROR reading tree 4\n");
-            return NULL;
-        } 
-
-        (*buffer) += strlen(ident);
-    }
+    TreeNode* node = LoadNodeValue(buffer);
+    if(!node) return NULL;
 
     SKIP;
 
@@ -279,22 +223,68 @@ static TreeNode* LoadNode(char** buffer)
     return node;
 }
 
-static size_t SearchOpByName(const char* name)
+
+static TreeNode* LoadNodeValue(char** buffer)
 {
-    assert(name);
+    assert(buffer);
+    assert(*buffer);
 
-    size_t i = 0;
+    TreeNode* node = NULL;
 
-    for(; i < OP_COUNT; i++)
+    SKIP;
+
+    int value = 0;
+    int count = 0;
+    sscanf(*buffer, "%d%n", &value, &count);
+
+    (*buffer) += count;
+
+    bool found = false;
+
+    if(count > 0)
     {
-        Oper data = OP_DATA[i];
-        if(!data.op_name) continue;
+        found = true;
 
-        if(!strncmp(name, data.op_name, strlen(data.op_name)))
+        node = CreateNode(NODE_CONSTANT, NodeValue {.constant = value}); 
+        if(!node)
         {
-            return i;
+            fprintf(stderr, "ERROR reading tree 1\n");
+            return NULL;
+        }      
+    }
+    if(!found)
+    {
+        size_t op_ind = GetOpByName(*buffer);
+
+        if(op_ind < OP_COUNT)
+        {
+            Oper data = OP_DATA[op_ind];
+            node = CreateNode(NODE_OPERATION, NodeValue {.operation = data.op});
+
+            if(!node)
+            {
+                fprintf(stderr, "ERROR reading tree 2\n");
+                return NULL;
+            }   
+
+            found = true;
+            (*buffer) += strlen(data.op_name);
         }
     }
+    if(!found)
+    {
+        char ident[identificator_lenght] = "";
+        if(!sscanf(*buffer, "%[^(|)\n ]", ident)) return NULL;
 
-    return i;
+        node = CreateNode(NODE_IDENTIFICATOR, NodeValue {.identificator = strdup(ident)});
+        if(!node)
+        {
+            fprintf(stderr, "ERROR reading tree 4\n");
+            return NULL;
+        } 
+
+        (*buffer) += strlen(ident);
+    }
+
+    return node;
 }

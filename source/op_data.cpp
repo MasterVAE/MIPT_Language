@@ -1,5 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <assert.h>
+#include <string.h>
 
 #include "op_data.h"
 
@@ -27,6 +29,46 @@ const char* GetOpColor(Operation operation)
     }
 
     return NULL;
+}
+
+size_t GetOpByName(const char* name)
+{
+    assert(name);
+
+    size_t i = 0;
+
+    for(; i < OP_COUNT; i++)
+    {
+        Oper data = OP_DATA[i];
+        if(!data.op_name) continue;
+
+        if(!strncmp(name, data.op_name, strlen(data.op_name)))
+        {
+            return i;
+        }
+    }
+
+    return i;
+}
+
+size_t GetOpByCode(const char* code)
+{
+    assert(code);
+
+    size_t i = 0;
+
+    for(; i < OP_COUNT; i++)
+    {
+        Oper data = OP_DATA[i];
+        if(!data.op_code) continue;
+
+        if(!strncmp(code, data.op_code, strlen(data.op_code)))
+        {
+            return i;
+        }
+    }
+
+    return i;
 }
 
 bool IsSystem(char symbol)

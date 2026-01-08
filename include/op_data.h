@@ -50,6 +50,9 @@ const size_t SYSTEM_SYMBOLS_COUNT = sizeof(SYSTEM_SYMBOLS)/sizeof(SYSTEM_SYMBOLS
 const char* GetOpName(Operation op);
 const char* GetOpColor(Operation operation);
 
+size_t GetOpByName(const char* name);
+size_t GetOpByCode(const char* code);
+
 bool IsSystem(char symbol);
 
 #endif // OP_DATA_H
