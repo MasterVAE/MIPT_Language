@@ -187,7 +187,7 @@ static TreeNode* LoadNode(char** buffer)
 
     if(**buffer != '(')
     {
-        fprintf(stderr, "ERROR reading tree 5 %s\n", *buffer);
+        fprintf(stderr, "ERROR reading tree: \'(\' not found\n");
         return NULL;
     } 
 
@@ -199,7 +199,7 @@ static TreeNode* LoadNode(char** buffer)
 
     if(**buffer != '|')
     {
-        fprintf(stderr, "ERROR reading tree 6\n");
+        fprintf(stderr, "ERROR reading tree: \'|\' not found\n");
         return NULL;
     } 
 
@@ -211,7 +211,7 @@ static TreeNode* LoadNode(char** buffer)
 
     if(**buffer != ')')
     {
-        fprintf(stderr, "ERROR reading tree 7 %s\n", *buffer);
+        fprintf(stderr, "ERROR reading tree: \')\' not found\n");
         return NULL;
     } 
 
@@ -248,7 +248,7 @@ static TreeNode* LoadNodeValue(char** buffer)
         node = CreateNode(NODE_CONSTANT, NodeValue {.constant = value}); 
         if(!node)
         {
-            fprintf(stderr, "ERROR reading tree 1\n");
+            fprintf(stderr, "ERROR reading tree: node not created 1\n");
             return NULL;
         }      
     }
@@ -263,7 +263,7 @@ static TreeNode* LoadNodeValue(char** buffer)
 
             if(!node)
             {
-                fprintf(stderr, "ERROR reading tree 2\n");
+                fprintf(stderr, "ERROR reading tree: node not created 2\n");
                 return NULL;
             }   
 
@@ -279,7 +279,7 @@ static TreeNode* LoadNodeValue(char** buffer)
         node = CreateNode(NODE_IDENTIFICATOR, NodeValue {.identificator = strdup(ident)});
         if(!node)
         {
-            fprintf(stderr, "ERROR reading tree 4\n");
+            fprintf(stderr, "ERROR reading tree: node not created 3\n");
             return NULL;
         } 
 
