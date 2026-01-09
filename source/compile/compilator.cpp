@@ -435,6 +435,8 @@ static void CompileNode(TreeNode* node, FILE* file, Compilator* compilator)
         {
             if(!node->left || !node->left->left || !node->left->right || !node->left->left->left || !node->left->left->right) ERROR;
 
+            CompileNode(node->left->right, file, compilator);
+
             PRINT("\nPUSH 80\n");
             
             CompileNode(node->left->left->right, file, compilator);
@@ -445,8 +447,7 @@ static void CompileNode(TreeNode* node, FILE* file, Compilator* compilator)
 
             PRINT("ADD\n");
             PRINT("POPR SR1\n");
-            
-            CompileNode(node->left->right, file, compilator);
+        
 
             PRINT("POPM [SR1]\n");
 
