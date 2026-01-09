@@ -1,0 +1,27 @@
+square(n)
+{
+    return n * n;
+};
+
+center_x = 20;
+center_y = 20;
+
+x = 0;
+while(x < 80)
+{
+    y = 0;
+
+    while(y < 45)
+    {
+        if(square(x - center_x) + square(y - center_y) < 40)
+        {
+            set(x, y, 150);
+        };
+
+        y = y + 1;
+    };
+
+    x = x + 1;
+};
+
+draw;
