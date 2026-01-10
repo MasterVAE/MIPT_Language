@@ -96,7 +96,7 @@ static TreeNode* Block(Program* prog)
         }
         if(!node)
         {
-            CreateNode(NODE_OPERATION, NodeValue {.operation = OP_EMPTY});
+            node =CreateNode(NODE_OPERATION, NodeValue {.operation = OP_EMPTY});
         } 
     }
 

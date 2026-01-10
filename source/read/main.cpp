@@ -9,6 +9,7 @@ int main(int argc, char** argv)
     if(argc < 3)
     {
         fprintf(stderr, "ERROR: Not enough argument");
+        return 1;
     }
 
     const char* in_filename = argv[1];

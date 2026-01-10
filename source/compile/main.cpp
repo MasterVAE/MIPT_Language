@@ -7,6 +7,7 @@ int main(int argc, char** argv)
     if(argc < 3)
     {
         fprintf(stderr, "ERROR: Not enough argument");
+        return 1;
     }
 
     const char* tree_filename = argv[1];

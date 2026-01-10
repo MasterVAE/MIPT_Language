@@ -70,14 +70,6 @@ TreeNode* CreateNode(NodeType type, NodeValue value,
     return node;
 }
 
-TreeNode* CopyNode(TreeNode* node)
-{
-    if(!node) return NULL;
-
-    return CreateNode(node->type, node->value, CopyNode(node->left), 
-                                               CopyNode(node->right));
-}
-
 void SetParents(Tree* tree)
 {
     assert(tree);

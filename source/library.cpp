@@ -16,10 +16,16 @@ char* ReadFile(const char* filename)
 
     size_t lenght = FileLength(file);
     char* buffer = (char*)calloc(lenght + 1, sizeof(char));
-    if(!buffer) return NULL;
+    if(!buffer) 
+    {
+        fclose(file);
+        return NULL;
+    }
 
     fread(buffer, lenght, 1, file);
     buffer[lenght] = '\0';
+
+    fclose(file);
 
     return buffer;
 }

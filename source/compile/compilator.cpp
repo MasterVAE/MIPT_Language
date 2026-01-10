@@ -454,21 +454,13 @@ static void CompileNode(TreeNode* node, FILE* file, Compilator* compilator)
             return;
         }
         case OP_EMPTY:
-            ERROR;
         case OP_COMMA:
-            ERROR;
         case OP_BRACKET_OPEN:
-            ERROR;
         case OP_BRACKET_CLOSE:
-            ERROR;
         case OP_FBRACKET_OPEN:
-            ERROR;
         case OP_FBRACKET_CLOSE:
-            ERROR;
         default:
-        {
-            return;
-        }
+            ERROR;
     }
 }
 
