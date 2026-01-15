@@ -5,6 +5,7 @@
 
 #include "tree.h"
 #include "compilator.h"
+#include "scope.h"
 
 #define PRINT(...) fprintf(file, __VA_ARGS__);
 
@@ -23,10 +24,6 @@ static void CompileSystemCode(FILE* file);
 static void CompileFunctions(FILE* file, Compilator* compilator);
 static void CompileArguments(TreeNode* node, FILE* file, Compilator* compilator);
 
-static bool CheckOperation(TreeNode* node, Operation op);
-static size_t VariableCount(Tree* tree);
-
-static size_t SearchVarInNametable(Compilator* compilator, const char* identificator);
 static size_t SearchFuncInNametable(Compilator* compilator, const char* identificator);
 
 struct VarCounter
@@ -34,8 +31,6 @@ struct VarCounter
     char** idents;
     size_t idents_count;
 };
-
-static void NodeVariableCount(TreeNode* node, VarCounter* counter);
 
 void CompileTree(Tree* tree, FILE* file)
 {
@@ -45,12 +40,7 @@ void CompileTree(Tree* tree, FILE* file)
     Compilator* compilator = CreateCompilator();
     if(!compilator) return;
 
-    compilator->variable_count = VariableCount(tree);
-    if(!compilator->variable_count)
-    {
-        DestroyCompilator(compilator);
-        return;
-    }
+    SetNametables(tree);
 
     CompileNode(tree->root, file, compilator);
 
@@ -59,6 +49,8 @@ void CompileTree(Tree* tree, FILE* file)
     CompileFunctions(file, compilator);
 
     DestroyCompilator(compilator);
+
+    ClearNametables(tree->root);
 }
 
 static void CompileSystemCode(FILE* file)
@@ -109,9 +101,9 @@ static void CompileFunctions(FILE* file, Compilator* compilator)
     assert(file);
     assert(compilator);
 
-    for(size_t i = 0; i < compilator->nametable.function_count; i++)
+    for(size_t i = 0; i < compilator->function_count; i++)
     {
-        TreeNode* func = compilator->nametable.functions[i];
+        TreeNode* func = compilator->functions[i];
         PRINT("LABEL %s                     #FUNCTION %s\n", func->left->value.identificator,
                                                              func->left->value.identificator);
 
@@ -143,28 +135,12 @@ static void CompileArguments(TreeNode* node, FILE* file, Compilator* compilator)
     {
         const char* name = node->left->value.identificator;
 
-        size_t i = SearchVarInNametable(compilator, name);
-        
-        if(i >= compilator->nametable.name_count)
-        {
-            compilator->nametable.name_count++;
-            const char** new_names = (const char**)realloc(compilator->nametable.names, 
-                                                sizeof(char*) * compilator->nametable.name_count);
-            if(!new_names)
-            {
-                free(compilator->nametable.names);
-                fprintf(stderr, "Memory error\n");
+        int i = SearchFromLocalToGlobalNametable(node->nametable, name);
+        if(i == -1) ERROR;
 
-                return;
-            }
-
-            compilator->nametable.names = new_names;
-            compilator->nametable.names[compilator->nametable.name_count - 1] = name;
-        }
-
-        PRINT("\nPUSH %lu                 #VARIABLE %s\n", i, name);
+        PRINT("\nPUSH %d                 #VARIABLE %s\n", i, name);
         PRINT("PUSHR SR2\n");
-        PRINT("PUSH %lu\n", compilator->variable_count);
+        PRINT("PUSH %lu\n", GlobalNametableVariableCount());
         PRINT("MUL\n");
         PRINT("ADD\n");
         PRINT("POPR SR1\n");
@@ -204,13 +180,12 @@ static void CompileNode(TreeNode* node, FILE* file, Compilator* compilator)
         {
             const char* name = node->left->value.identificator;
 
-            size_t i = SearchVarInNametable(compilator, name);
+            int i = SearchFromLocalToGlobalNametable(node->nametable, name);
+            if(i == -1) ERROR;
 
-            if(i >= compilator->nametable.name_count) ERROR;
-
-            PRINT("\nPUSH %lu                 #VARIABLE %s\n", i, name);
+            PRINT("\nPUSH %d                 #VARIABLE %s\n", i, name);
             PRINT("PUSHR SR2\n");
-            PRINT("PUSH %lu\n", compilator->variable_count);
+            PRINT("PUSH %lu\n", GlobalNametableVariableCount());
             PRINT("MUL\n");
             PRINT("ADD\n");
             PRINT("POPR SR1\n");
@@ -256,30 +231,14 @@ static void CompileNode(TreeNode* node, FILE* file, Compilator* compilator)
 
             const char* name = node->left->left->value.identificator;
 
-            size_t i = SearchVarInNametable(compilator, name);
-    
-            if(i == compilator->nametable.name_count)
-            {
-                compilator->nametable.name_count++;
-                const char** new_names = (const char**)realloc(compilator->nametable.names, 
-                                                    sizeof(char*) * compilator->nametable.name_count);
-                if(!new_names)
-                {
-                    free(compilator->nametable.names);
-
-                    ERROR;
-                    return;
-                }
-
-                compilator->nametable.names = new_names;
-                compilator->nametable.names[compilator->nametable.name_count - 1] = name;
-            }
+            int i = SearchFromLocalToGlobalNametable(node->left->nametable, name);
+            if(i == -1) ERROR;
 
             CompileNode(node->right, file, compilator);
 
-            PRINT("\nPUSH %lu                 #VARIABLE %s\n", i, name);
+            PRINT("\nPUSH %d                 #VARIABLE %s\n", i, name);
             PRINT("PUSHR SR2\n");
-            PRINT("PUSH %lu\n", compilator->variable_count);
+            PRINT("PUSH %lu\n", GlobalNametableVariableCount());
             PRINT("MUL\n");
             PRINT("ADD\n");
             PRINT("POPR SR1\n");
@@ -383,15 +342,15 @@ static void CompileNode(TreeNode* node, FILE* file, Compilator* compilator)
             {
 
                 size_t i = SearchFuncInNametable(compilator, name);
-                if(i < compilator->nametable.function_count) ERROR;
+                if(i < compilator->function_count) ERROR;
 
-                compilator->nametable.function_count++;
+                compilator->function_count++;
 
-                compilator->nametable.functions 
-                = (TreeNode**)realloc(compilator->nametable.functions, 
-                                      compilator->nametable.function_count * sizeof(TreeNode*));
+                compilator->functions 
+                = (TreeNode**)realloc(compilator->functions, 
+                                      compilator->function_count * sizeof(TreeNode*));
 
-                compilator->nametable.functions[compilator->nametable.function_count - 1] = node;
+                compilator->functions[compilator->function_count - 1] = node;
 
                 return;
             }
@@ -449,21 +408,12 @@ static Compilator* CreateCompilator()
     Compilator* comp = (Compilator*)calloc(1, sizeof(Compilator));
     if(!comp) return NULL;
 
-    comp->nametable.name_count = 0;
-    comp->nametable.names = (const char**)calloc(1, sizeof(char*));
-    if(!comp->nametable.names)
-    {
-        free(comp);
-        return NULL;
-    }
     comp->current_label = 0;
-    comp->variable_count = 0;
 
-    comp->nametable.function_count = 0;
-    comp->nametable.functions = (TreeNode**)calloc(1, sizeof(TreeNode*));
-    if(!comp->nametable.functions)
+    comp->function_count = 0;
+    comp->functions = (TreeNode**)calloc(1, sizeof(TreeNode*));
+    if(!comp->functions)
     {
-        free(comp->nametable.names);
         free(comp);
         return NULL;
     }
@@ -475,107 +425,8 @@ static void DestroyCompilator(Compilator* compilator)
 {
     if(!compilator) return;
 
-    free(compilator->nametable.functions);
-    free(compilator->nametable.names);
+    free(compilator->functions);
     free(compilator);
-}
-
-static bool CheckOperation(TreeNode* node, Operation op)
-{
-    return node && node->type == NODE_OPERATION && node->value.operation == op;
-}
-
-static size_t VariableCount(Tree* tree)
-{
-    VarCounter counter;
-    counter.idents_count = 1;
-    counter.idents = (char**)calloc(1, sizeof(TreeNode*));
-    if(!counter.idents) return 0;
-
-    NodeVariableCount(tree->root, &counter);
-
-    free(counter.idents);
-
-    return counter.idents_count;
-
-}
-
-static void NodeVariableCount(TreeNode* node, VarCounter* counter)
-{
-    assert(counter);
-
-    if(!node) return;
-
-    if(!counter->idents) return;
-
-    if(CheckOperation(node, OP_VARIABLE))
-    {
-        char* identificator = node->left->value.identificator;
-
-        bool added = false;
-
-        for(size_t i = 0; i < counter->idents_count; i++)
-        {
-            if(!counter->idents[i])
-            {
-                counter->idents[i] = identificator;
-                added = true;
-                break;
-            }
-            else
-            {
-                if(!strcmp(counter->idents[i], identificator))
-                {
-                    added = true;
-                }
-            }
-        }
-
-        if(!added)
-        {
-            counter->idents_count++;
-            char** new_idents = (char**)realloc(counter->idents, 
-                                                counter->idents_count * sizeof(char*));
-
-            if(!new_idents)
-            {
-                free(counter->idents);
-                counter->idents = NULL;
-                counter->idents_count = 0;
-                return;
-            }
-
-            new_idents[counter->idents_count - 1] = identificator;
-            counter->idents = new_idents;
-        }
-    }
-
-    NodeVariableCount(node->left, counter);
-    NodeVariableCount(node->right, counter);
-
-    if(!counter->idents)
-    {
-        counter->idents_count = 0;
-        return;
-    }
-}
-
-static size_t SearchVarInNametable(Compilator* compilator, const char* identificator)
-{
-    assert(compilator);
-    assert(identificator);
-
-    size_t i = 0;
-    for(i = 0; i < compilator->nametable.name_count; i++)
-    {
-        if(compilator->nametable.names[i] 
-        && !strcmp(identificator, compilator->nametable.names[i]))
-        {
-            return i;
-        }
-    }
-
-    return i;
 }
 
 static size_t SearchFuncInNametable(Compilator* compilator, const char* identificator)
@@ -584,10 +435,10 @@ static size_t SearchFuncInNametable(Compilator* compilator, const char* identifi
     assert(identificator);
 
     size_t i = 0;
-    for(i = 0; i < compilator->nametable.function_count; i++)
+    for(i = 0; i < compilator->function_count; i++)
     {
-        if(compilator->nametable.functions[i] 
-        && !strcmp(identificator, compilator->nametable.functions[i]->left->value.identificator))
+        if(compilator->functions[i] 
+        && !strcmp(identificator, compilator->functions[i]->left->value.identificator))
         {
             return i;
         }

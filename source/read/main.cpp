@@ -3,6 +3,7 @@
 #include "tree_logger.h"
 #include "verificator.h"
 #include "tokenizator.h"
+#include "scope.h"
 
 int main(int argc, char** argv)
 {

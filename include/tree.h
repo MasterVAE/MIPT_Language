@@ -45,12 +45,26 @@ union NodeValue
     Operation operation;
 };
 
+struct VariableData
+{
+    char* name;
+    char* scope_name;
+};
+
+struct Nametable
+{
+    size_t variable_count;
+    VariableData* variables;
+};
+
 struct TreeNode
 {
     NodeType type;
     NodeValue value;
 
     bool correct;
+
+    Nametable* nametable;
 
     TreeNode* left;
     TreeNode* right;
@@ -72,6 +86,8 @@ TreeNode* CreateNode(NodeType type, NodeValue value,
                      TreeNode* left = NULL, TreeNode* right = NULL, TreeNode* parent = NULL);
 TreeNode* CopyNode(TreeNode* node);
 void SetParents(Tree* tree);
+
+bool CheckOperation(TreeNode* node, Operation op);
 
 
 static const size_t BUFFER_SIZE = 128;

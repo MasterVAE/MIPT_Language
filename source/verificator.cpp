@@ -5,7 +5,6 @@
 #include "tree.h" 
 
 static TreeNode* VerifyNode(TreeNode* node);
-static bool CheckOperation(TreeNode* node, Operation op);
 
 #define SYNTAX                                                  \
 {                                                               \
@@ -27,10 +26,6 @@ Tree* Verify(Tree* tree)
     return tree;
 }
 
-static bool CheckOperation(TreeNode* node, Operation op)
-{
-    return node && node->type == NODE_OPERATION && node->value.operation == op;
-}
 
 static TreeNode* VerifyNode(TreeNode* node)
 {

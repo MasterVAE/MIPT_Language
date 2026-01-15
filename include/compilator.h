@@ -5,20 +5,12 @@
 
 #include "tree.h"
 
-struct Nametable
+struct Compilator
 {
-    const char** names;
-    size_t name_count;
+    size_t current_label;
 
     TreeNode** functions;
     size_t function_count;
-};
-
-struct Compilator
-{
-    Nametable nametable;
-    size_t current_label;
-    size_t variable_count;
 };
 
 void CompileTree(Tree* tree, FILE* file);

@@ -7,6 +7,7 @@
 #include "tree.h"
 #include "op_data.h"
 #include "library.h"
+#include "scope.h"
 
 static void SetNodeParent(TreeNode* node, TreeNode* parent);
 
@@ -287,4 +288,9 @@ static TreeNode* LoadNodeValue(char** buffer)
     }
 
     return node;
+}
+
+bool CheckOperation(TreeNode* node, Operation op)
+{
+    return node && node->type == NODE_OPERATION && node->value.operation == op;
 }

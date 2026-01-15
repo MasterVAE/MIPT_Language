@@ -1,5 +1,5 @@
 SOURCES_COMPILATOR = compile/main.cpp compile/compilator.cpp tree.cpp op_data.cpp tree_logger.cpp\
-						library.cpp
+						library.cpp scope.cpp
 TARGET_COMPILATOR = $(TARGET_DIR)/compilator.out
 
 OBJECTS_COMPILATOR = $(addprefix $(OBJ_DIR)/, $(SOURCES_COMPILATOR:.cpp=.o))

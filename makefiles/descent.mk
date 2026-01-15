@@ -1,5 +1,5 @@
 SOURCES_DESCENT = read/main.cpp read/read.cpp read/tokenizator.cpp verificator.cpp tree.cpp\
-						op_data.cpp tree_logger.cpp library.cpp
+						op_data.cpp tree_logger.cpp library.cpp scope.cpp
 TARGET_DESCENT = $(TARGET_DIR)/descent.out
 
 OBJECTS_DESCENT = $(addprefix $(OBJ_DIR)/, $(SOURCES_DESCENT:.cpp=.o))

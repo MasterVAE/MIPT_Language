@@ -4,6 +4,8 @@ SOURCE_DIR = source
 INCLUDE_DIR = include
 FILES_DIR = files
 
+.DEFAULT_GOAL := all
+
 CC = g++
 CFLAGS = -D _DEBUG -ggdb3 -std=c++17 -Wall -Wextra -Weffc++ -Waggressive-loop-optimizations\
 		 -Wc++14-compat -Wmissing-declarations -Wcast-align -Wcast-qual -Wchar-subscripts \
