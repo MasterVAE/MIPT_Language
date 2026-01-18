@@ -254,6 +254,33 @@ static void CompileNode(TreeNode* node, FILE* file, Compilator* compilator)
 
             return;
         }
+        case OP_DRAW:
+        {
+            PRINT("DRAW\n");
+
+            return;
+        }
+        case OP_SET:
+        {
+            if(!node->left || !node->left->left || !node->left->right || !node->left->left->left || !node->left->left->right) ERROR;
+
+            PRINT("\nPUSH 80\n");
+
+            CompileNode(node->left->left->right, file, compilator);
+
+            PRINT("MUL\n");
+
+            CompileNode(node->left->left->left, file, compilator);
+
+            PRINT("ADD\n");
+            PRINT("POPR SR1\n");
+
+            CompileNode(node->left->right, file, compilator);
+
+            PRINT("POPM [SR1]\n");
+
+            return;
+        }
         case OP_IN:
         {
             PRINT("IN\n");

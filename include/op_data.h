@@ -28,6 +28,8 @@ static Oper OP_DATA[] =
     {OP_IN,             "IN",       "in",       "darkolivegreen3"},
     {OP_OUT,            "OUT",      "out",      "darkolivegreen3"},
     {OP_RETURN,         "RETURN",   "return",   "darkolivegreen3"},
+    {OP_SET,            "SET",      "set",      "darkolivegreen3"},
+    {OP_DRAW,           "DRAW",     "draw",     "darkolivegreen3"},
     {OP_BRACKET_OPEN,   NULL,       "("},
     {OP_BRACKET_CLOSE,  NULL,       ")"},
     {OP_FBRACKET_OPEN,  NULL,       "{"},
