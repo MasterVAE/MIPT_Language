@@ -104,14 +104,14 @@ static void CompileFunctions(FILE* file, Compilator* compilator)
     for(size_t i = 0; i < compilator->function_count; i++)
     {
         TreeNode* func = compilator->functions[i];
-        PRINT("LABEL %s                     #FUNCTION %s\n", func->left->value.identificator,
+        PRINT("LABEL %s                     #FUNCTION %s BODY\n", func->left->value.identificator,
                                                              func->left->value.identificator);
 
         CompileArguments(func->right->left, file, compilator);
 
         CompileNode(func->right->right, file, compilator);
 
-        PRINT("PUSHR SR2\n");
+        PRINT("PUSHR SR2                # DECREASING RECURSION DEPTH \n");
         PRINT("PUSH 1\n");
         PRINT("SUB\n");
         PRINT("POPR SR2\n");
@@ -138,7 +138,7 @@ static void CompileArguments(TreeNode* node, FILE* file, Compilator* compilator)
         int i = SearchFromLocalToGlobalNametable(node->nametable, name);
         if(i == -1) ERROR;
 
-        PRINT("\nPUSH %d                 #VARIABLE %s\n", i, name);
+        PRINT("\nPUSH %d                 #VARIABLE %s AS ARGUMENT\n", i, name);
         PRINT("PUSHR SR2\n");
         PRINT("PUSH %lu\n", GlobalNametableVariableCount());
         PRINT("MUL\n");
@@ -236,7 +236,7 @@ static void CompileNode(TreeNode* node, FILE* file, Compilator* compilator)
 
             CompileNode(node->right, file, compilator);
 
-            PRINT("\nPUSH %d                 #VARIABLE %s\n", i, name);
+            PRINT("\nPUSH %d                 #VARIABLE %s ASSIGMENT\n", i, name);
             PRINT("PUSHR SR2\n");
             PRINT("PUSH %lu\n", GlobalNametableVariableCount());
             PRINT("MUL\n");

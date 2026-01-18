@@ -299,7 +299,9 @@ static SearchState SearchStateNode(TreeNode* node, const char* variable)
 
         if(strcmp(name, variable)) return None;
 
-        return Def;
+        SearchState right = SearchStateNode(node->right, variable);
+
+        return right == Use ? Use : Def;
     }
 
     if(CheckOperation(node, OP_FUNCTION) 
