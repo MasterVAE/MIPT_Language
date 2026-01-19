@@ -91,41 +91,38 @@ static void AddVarToNametable(TreeNode* node, Nametable* nametable)
 
     if(!node) return;
 
-    if(CheckOperation(node, OP_VARIABLE))
+    if(!CheckOperation(node, OP_VARIABLE))
     {
-        if(node->left)
-        {
-            char* name = node->left->value.identificator;
-
-            if(FindVarNameInNametable(nametable, name) != -1) return;
-
-            nametable->variable_count++;
-
-            nametable->variables = (VariableData*)realloc(nametable->variables, 
-                                            sizeof(VariableData) * nametable->variable_count);
-
-            nametable->variables[nametable->variable_count - 1].name = strdup(name);
-            nametable->variables[nametable->variable_count - 1].scope_name = strdup(name);
-
-
-            GLOBAL_NAMETABLE->variable_count++;
-
-            GLOBAL_NAMETABLE->variables = 
-                (VariableData*)realloc(GLOBAL_NAMETABLE->variables, 
-                                       sizeof(VariableData) * GLOBAL_NAMETABLE->variable_count);
-
-            GLOBAL_NAMETABLE->variables[GLOBAL_NAMETABLE->variable_count - 1].name = 
-                strdup(name);
-            GLOBAL_NAMETABLE->variables[GLOBAL_NAMETABLE->variable_count - 1].scope_name = 
-                strdup(name);
-        }
+        AddVarToNametable(node->left, nametable);
+        AddVarToNametable(node->right, nametable);
 
         return;
     }
 
+    if(!node->left) return;
+        
+    char* name = node->left->value.identificator;
+    
+    if(FindVarNameInNametable(nametable, name) != -1) return;
 
-    AddVarToNametable(node->left, nametable);
-    AddVarToNametable(node->right, nametable);
+    nametable->variable_count++;
+
+    nametable->variables = (VariableData*)realloc(nametable->variables, 
+                                    sizeof(VariableData) * nametable->variable_count);
+
+    nametable->variables[nametable->variable_count - 1].name = strdup(name);
+    nametable->variables[nametable->variable_count - 1].scope_name = strdup(name);
+
+    GLOBAL_NAMETABLE->variable_count++;
+
+    GLOBAL_NAMETABLE->variables = 
+        (VariableData*)realloc(GLOBAL_NAMETABLE->variables, 
+                               sizeof(VariableData) * GLOBAL_NAMETABLE->variable_count);
+
+    GLOBAL_NAMETABLE->variables[GLOBAL_NAMETABLE->variable_count - 1].name = 
+        strdup(name);
+    GLOBAL_NAMETABLE->variables[GLOBAL_NAMETABLE->variable_count - 1].scope_name = 
+        strdup(name);
 }
 
 void SetNametables(Tree* tree)
