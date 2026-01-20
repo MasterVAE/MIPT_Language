@@ -112,10 +112,10 @@ static void CompileFunctions(FILE* file, Compilator* compilator)
         CompileNode(func->right->right, file, compilator);
 
         PRINT("PUSHR SR2                # DECREASING RECURSION DEPTH \n");
-        PRINT("PUSH 1\n");
+        PRINT("PUSH %lu\n", GlobalNametableVariableCount());
         PRINT("SUB\n");
         PRINT("POPR SR2\n");
-        PRINT("RET\n");
+        PRINT("RET\n\n");
     }
 }
 
@@ -140,8 +140,6 @@ static void CompileArguments(TreeNode* node, FILE* file, Compilator* compilator)
 
         PRINT("\nPUSH %d                 #VARIABLE %s AS ARGUMENT\n", i, name);
         PRINT("PUSHR SR2\n");
-        PRINT("PUSH %lu\n", GlobalNametableVariableCount());
-        PRINT("MUL\n");
         PRINT("ADD\n");
         PRINT("POPR SR1\n");
         PRINT("POPM [SR1]\n\n");
@@ -185,8 +183,6 @@ static void CompileNode(TreeNode* node, FILE* file, Compilator* compilator)
 
             PRINT("\nPUSH %d                 #VARIABLE %s\n", i, name);
             PRINT("PUSHR SR2\n");
-            PRINT("PUSH %lu\n", GlobalNametableVariableCount());
-            PRINT("MUL\n");
             PRINT("ADD\n");
             PRINT("POPR SR1\n");
             PRINT("PUSHM [SR1]\n\n");
@@ -238,8 +234,6 @@ static void CompileNode(TreeNode* node, FILE* file, Compilator* compilator)
 
             PRINT("\nPUSH %d                 #VARIABLE %s ASSIGMENT\n", i, name);
             PRINT("PUSHR SR2\n");
-            PRINT("PUSH %lu\n", GlobalNametableVariableCount());
-            PRINT("MUL\n");
             PRINT("ADD\n");
             PRINT("POPR SR1\n");
             PRINT("POPM [SR1]\n");
@@ -384,8 +378,8 @@ static void CompileNode(TreeNode* node, FILE* file, Compilator* compilator)
 
             CompileNode(node->right, file, compilator);
 
-            PRINT("PUSHR SR2\n");
-            PRINT("PUSH 1\n");
+            PRINT("PUSHR SR2            # INCREASING RECURSION DEPTH\n");
+            PRINT("PUSH %lu\n", GlobalNametableVariableCount());
             PRINT("ADD\n");
             PRINT("POPR SR2\n");
             PRINT("CALL %s\n", name);
@@ -403,11 +397,11 @@ static void CompileNode(TreeNode* node, FILE* file, Compilator* compilator)
         {
             if(node->left)  CompileNode(node->left, file, compilator);
 
-            PRINT("PUSHR SR2\n");
-            PRINT("PUSH 1\n");
+            PRINT("PUSHR SR2                # DECREASING RECURSION DEPTH \n");
+            PRINT("PUSH %lu\n", GlobalNametableVariableCount());
             PRINT("SUB\n");
             PRINT("POPR SR2\n");
-            PRINT("RET\n");
+            PRINT("RET\n\n");
 
             return;
         }

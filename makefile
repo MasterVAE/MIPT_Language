@@ -6,13 +6,14 @@ FILES_DIR = files
 
 .DEFAULT_GOAL := all
 
-TARGET = DEBUG
+TARGET ?= DEBUG
 
 CC = g++
 DEBUG_FLAGS = -D \
 				_DEBUG \
 				-ggdb3 \
-				-fsanitize=address,alignment,bool,bounds,enum,float-cast-overflow,float-divide-by-zero,integer-divide-by-zero,leak,nonnull-attribute,null,object-size,return,returns-nonnull-attribute,shift,signed-integer-overflow,undefined,unreachable,vla-bound,vptr
+				-fsanitize=address,alignment,bool,bounds,enum,float-cast-overflow,float-divide-by-zero,integer-divide-by-zero,leak,$\
+				nonnull-attribute,null,object-size,return,returns-nonnull-attribute,shift,signed-integer-overflow,undefined,unreachable,vla-bound,vptr
 
 CFLAGS = -std=c++17 -Wall \
 		-Wextra \
@@ -74,7 +75,7 @@ CFLAGS = -std=c++17 -Wall \
 		-fPIE \
 		-Werror=vla \
 		
-RELEASE_FLAGS = -O2 -march=native
+RELEASE_FLAGS = -O2 -march=native -g -D NDEBUG -flto
 
 ifeq ($(TARGET), DEBUG)
     CFLAGS += $(DEBUG_FLAGS)
