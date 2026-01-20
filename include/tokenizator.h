@@ -21,4 +21,6 @@ struct Program
 
 Program* Tokenize(const char* filename);
 
+void DestroyProg(Program* prog);
+
 #endif // TOKENIZATOR_H

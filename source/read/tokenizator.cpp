@@ -171,3 +171,21 @@ static size_t SkipSpaces(const char** buffer, bool isComment)
 
     return line;
 }
+
+void DestroyProg(Program* prog)
+{
+    if(!prog) return;
+    if(prog->tokens)
+    {
+        for(size_t i = 0; i < prog->token_count; i++)
+        {
+            if(prog->tokens[i].type == NODE_IDENTIFICATOR)
+            {
+                free(prog->tokens[i].value.identificator);
+            }
+        }
+    }
+
+    free(prog->tokens);
+    free(prog);
+}

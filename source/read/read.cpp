@@ -30,17 +30,20 @@ static bool CheckOperation(Token* token, Operation op);
 
 #define CURRENT CurrentToken(prog)
 
-
-#define SYNTAX                                                                                  \
+#define SYNTAX(node)                                                                            \
 {                                                                                               \
     Token* token = CURRENT;                                                                     \
     if(!token)                                                                                  \
     {                                                                                           \
-        fprintf(stderr, " Syntax error %s:%d\n", __FILE__, __LINE__);                           \
+        fprintf(stderr, " SYNTAX error %s:%d\n", __FILE__, __LINE__);                           \
     }                                                                                           \
     else                                                                                        \
     {                                                                                           \
-        fprintf(stderr, " Syntax error %s:%d line: %lu\n", __FILE__, __LINE__, token->line);    \
+        fprintf(stderr, " SYNTAX error %s:%d line: %lu\n", __FILE__, __LINE__, token->line);    \
+    }                                                                                           \
+    if(node)                                                                                    \
+    {                                                                                           \
+        NodeDestroy(node);                                                                      \
     }                                                                                           \
     return NULL;                                                                                \
 }
@@ -73,7 +76,7 @@ static TreeNode* Programm(Program* prog)
                                                     node, new_node);
     }
 
-    if(prog->current_token != prog->token_count) SYNTAX;
+    if(prog->current_token != prog->token_count) SYNTAX(node);
     
     return node;
 }
@@ -82,7 +85,7 @@ static TreeNode* Block(Program* prog)
 {
     assert(prog);
 
-    if(!CheckOperation(CURRENT, OP_FBRACKET_OPEN)) SYNTAX;
+    if(!CheckOperation(CURRENT, OP_FBRACKET_OPEN)) SYNTAX(NULL);
 
     prog->current_token++;
 
@@ -96,14 +99,14 @@ static TreeNode* Block(Program* prog)
         }
         if(!node)
         {
-            CreateNode(NODE_OPERATION, NodeValue {.operation = OP_EMPTY});
+            node = CreateNode(NODE_OPERATION, NodeValue {.operation = OP_EMPTY});
         } 
     }
 
     while(!CheckOperation(CURRENT, OP_FBRACKET_CLOSE))
     {
         TreeNode* new_line = Line(prog);
-        if(!new_line) return NULL;
+        if(!new_line) SYNTAX(node);
 
         node = CreateNode(NODE_OPERATION, NodeValue {.operation = OP_LINE}, 
                                                      node, new_line);
@@ -121,7 +124,7 @@ static TreeNode* Line(Program* prog)
     TreeNode* node = Assigment(prog);
     if(!node) return NULL;
 
-    if(!CheckOperation(CURRENT, OP_LINE)) SYNTAX;
+    if(!CheckOperation(CURRENT, OP_LINE)) SYNTAX(node);
 
     prog->current_token++;
 
@@ -142,7 +145,7 @@ static TreeNode* Assigment(Program* prog)
         prog->current_token++;
 
         TreeNode* new_node = Assigment(prog);
-        if(!new_node) SYNTAX;
+        if(!new_node) SYNTAX(node);
 
         node = CreateNode(NODE_OPERATION, NodeValue {.operation = OP_ASSIGN}, node, new_node);
     }
@@ -168,7 +171,7 @@ static TreeNode* Expression(Program* prog)
             prog->current_token++;
 
             TreeNode* new_node = Term(prog);
-            if(!new_node) SYNTAX;
+            if(!new_node) SYNTAX(node);
 
             node = CreateNode(
                         NODE_OPERATION, 
@@ -199,7 +202,7 @@ static TreeNode* Term(Program* prog)
             prog->current_token++;
 
             TreeNode* new_node = Primar(prog);
-            if(!new_node) SYNTAX;
+            if(!new_node) SYNTAX(node);
 
             node = CreateNode(NODE_OPERATION, NodeValue {.operation = OP_ADD}, node, new_node);
         }
@@ -208,7 +211,7 @@ static TreeNode* Term(Program* prog)
             prog->current_token++;
 
             TreeNode* new_node = Primar(prog);
-            if(!new_node) SYNTAX;
+            if(!new_node) SYNTAX(node);
 
             node = CreateNode(NODE_OPERATION, NodeValue {.operation = OP_SUB}, node, new_node);
         }
@@ -234,7 +237,7 @@ static TreeNode* Primar(Program* prog)
             prog->current_token++;
 
             TreeNode* new_node = Element(prog);
-            if(!new_node) SYNTAX;
+            if(!new_node) SYNTAX(node);
 
             node = CreateNode(
                         NODE_OPERATION, 
@@ -276,7 +279,7 @@ static TreeNode* Brackets(Program* prog)
 
     node = Assigment(prog);
 
-    if(!CheckOperation(CURRENT, OP_BRACKET_CLOSE)) SYNTAX;
+    if(!CheckOperation(CURRENT, OP_BRACKET_CLOSE)) SYNTAX(node);
 
     prog->current_token++;
 
@@ -367,12 +370,16 @@ static TreeNode* FuncVar(Program* prog)
     if(CheckOperation(CURRENT, OP_BRACKET_OPEN))
     {
         TreeNode* arg = Argument(prog);
-        if(!arg) SYNTAX;
+        if(!arg) SYNTAX(ident);
 
         if(CheckOperation(CURRENT, OP_FBRACKET_OPEN))
         {
             TreeNode* block = Block(prog);
-            if(!block) SYNTAX;
+            if(!block) 
+            {
+                NodeDestroy(arg);
+                SYNTAX(ident);
+            }
 
             return CreateNode(  
                 NODE_OPERATION, 
@@ -399,7 +406,7 @@ static TreeNode* Identif(Program* prog)
     prog->current_token++;
 
     return CreateNode(NODE_IDENTIFICATOR, 
-                      NodeValue {.identificator = current->value.identificator});
+                      NodeValue {.identificator = strdup(current->value.identificator)});
 }
 
 static TreeNode* Argument(Program* prog)
@@ -408,7 +415,7 @@ static TreeNode* Argument(Program* prog)
 
     TreeNode* node = NULL;
 
-    if(!CheckOperation(CURRENT, OP_BRACKET_OPEN)) SYNTAX;
+    if(!CheckOperation(CURRENT, OP_BRACKET_OPEN)) SYNTAX(NULL);
     prog->current_token++;
 
     node = Assigment(prog);
@@ -418,12 +425,12 @@ static TreeNode* Argument(Program* prog)
         prog->current_token++;
 
         TreeNode* node1 = Assigment(prog);
-        if(!node1) SYNTAX;
+        if(!node1) SYNTAX(node);
 
         node = CreateNode(NODE_OPERATION, NodeValue {.operation = OP_ARGUMENT}, node, node1);
     }
 
-    if(!CheckOperation(CURRENT, OP_BRACKET_CLOSE)) SYNTAX;
+    if(!CheckOperation(CURRENT, OP_BRACKET_CLOSE)) SYNTAX(node);
 
     prog->current_token++;
 

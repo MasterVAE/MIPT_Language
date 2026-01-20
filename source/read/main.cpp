@@ -25,13 +25,15 @@ int main(int argc, char** argv)
 
     Tree* tree = ReadProgramm(prog);
 
-    free(prog->tokens);
-    free(prog);
+    DestroyProg(prog);
 
     if(!tree || !tree->root) 
     {
         fprintf(stderr, "Error processing file %s\n", in_filename);
-
+        if(tree)
+        {
+            TreeDestroy(tree);
+        }
         return 1;
     }
 
