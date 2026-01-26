@@ -27,7 +27,11 @@ static Program* CreateProgram()
     prog->current_token = 0;
     prog->tokens = (Token*)calloc(1, sizeof(Token));
 
-    if(!prog->tokens) return NULL;
+    if(!prog->tokens) 
+    {   
+        free(prog);
+        return NULL;
+    }
 
     return prog;
 }
@@ -40,11 +44,13 @@ Program* Tokenize(const char* filename)
     if(!buffer) return NULL;
 
     Program* prog = CreateProgram();
-    if(!prog) return NULL;
+    if(!prog) 
+    {
+        free(buffer);
+        return NULL;
+    }
 
-    char* buffer_copy = buffer;
-
-    Read(prog, buffer_copy);
+    Read(prog, buffer);
 
     free(buffer);
     return prog;

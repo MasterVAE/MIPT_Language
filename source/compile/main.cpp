@@ -7,6 +7,7 @@ int main(int argc, char** argv)
     if(argc < 3)
     {
         fprintf(stderr, "ERROR: Not enough argument");
+        return EXIT_FAILURE;
     }
 
     const char* tree_filename = argv[1];
@@ -17,7 +18,7 @@ int main(int argc, char** argv)
     {
         fprintf(stderr, "Error loading tree from %s\n", tree_filename);
 
-        return 1;
+        return EXIT_FAILURE;
     }
 
     FILE* file = fopen(out_filename, "w+");
@@ -26,7 +27,7 @@ int main(int argc, char** argv)
         fprintf(stderr, "Error opening file %s\n", out_filename);
         TreeDestroy(tree);
 
-        return 1;
+        return EXIT_FAILURE;
     }
 
     CompileTree(tree, file);
@@ -37,5 +38,5 @@ int main(int argc, char** argv)
 
     printf("Compilation complete\n");
 
-    return 0;
+    return EXIT_SUCCESS;
 }

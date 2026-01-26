@@ -10,6 +10,7 @@ int main(int argc, char** argv)
     if(argc < 3)
     {
         fprintf(stderr, "ERROR: Not enough argument");
+        return EXIT_FAILURE;
     }
 
     const char* in_filename = argv[1];
@@ -19,8 +20,7 @@ int main(int argc, char** argv)
     if(!prog) 
     {
         fprintf(stderr, "Error tokenizing file %s\n", in_filename);
-
-        return 1;
+        return EXIT_FAILURE;
     }
 
     Tree* tree = ReadProgramm(prog);
@@ -34,7 +34,7 @@ int main(int argc, char** argv)
         {
             TreeDestroy(tree);
         }
-        return 1;
+        return EXIT_FAILURE;
     }
 
     SetParents(tree);
@@ -49,5 +49,5 @@ int main(int argc, char** argv)
 
     printf("Descent complete\n");
 
-    return 0;
+    return EXIT_SUCCESS;
 }

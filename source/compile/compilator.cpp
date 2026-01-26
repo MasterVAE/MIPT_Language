@@ -26,6 +26,11 @@ static void CompileArguments(TreeNode* node, FILE* file, Compilator* compilator)
 
 static size_t SearchFuncInNametable(Compilator* compilator, const char* identificator);
 
+static const size_t SCREEN_WIDTH = 80; 
+static const char* SCOPE_REG = "SR2"; 
+static const char* MEM_REG = "SR1"; 
+
+
 struct VarCounter
 {
     char** idents;
@@ -111,10 +116,10 @@ static void CompileFunctions(FILE* file, Compilator* compilator)
 
         CompileNode(func->right->right, file, compilator);
 
-        PRINT("PUSHR SR2                # DECREASING RECURSION DEPTH \n");
+        PRINT("PUSHR %s                # DECREASING RECURSION DEPTH \n", SCOPE_REG);
         PRINT("PUSH %lu\n", GlobalNametableVariableCount());
         PRINT("SUB\n");
-        PRINT("POPR SR2\n");
+        PRINT("POPR %s\n", SCOPE_REG);
         PRINT("RET\n\n");
     }
 }
@@ -139,10 +144,10 @@ static void CompileArguments(TreeNode* node, FILE* file, Compilator* compilator)
         if(i == -1) ERROR;
 
         PRINT("\nPUSH %d                 #VARIABLE %s AS ARGUMENT\n", i, name);
-        PRINT("PUSHR SR2\n");
+        PRINT("PUSHR %s\n", SCOPE_REG);
         PRINT("ADD\n");
-        PRINT("POPR SR1\n");
-        PRINT("POPM [SR1]\n\n");
+        PRINT("POPR %s\n", MEM_REG);
+        PRINT("POPM [%s]\n\n", MEM_REG);
     }
     else
     {
@@ -182,10 +187,10 @@ static void CompileNode(TreeNode* node, FILE* file, Compilator* compilator)
             if(i == -1) ERROR;
 
             PRINT("\nPUSH %d                 #VARIABLE %s\n", i, name);
-            PRINT("PUSHR SR2\n");
+            PRINT("PUSHR %s\n", SCOPE_REG);
             PRINT("ADD\n");
-            PRINT("POPR SR1\n");
-            PRINT("PUSHM [SR1]\n\n");
+            PRINT("POPR %s\n", MEM_REG);
+            PRINT("PUSHM [%s]\n\n", MEM_REG);
                     
             return;
         }
@@ -233,11 +238,11 @@ static void CompileNode(TreeNode* node, FILE* file, Compilator* compilator)
             CompileNode(node->right, file, compilator);
 
             PRINT("\nPUSH %d                 #VARIABLE %s ASSIGMENT\n", i, name);
-            PRINT("PUSHR SR2\n");
+            PRINT("PUSHR %s\n", SCOPE_REG);
             PRINT("ADD\n");
-            PRINT("POPR SR1\n");
-            PRINT("POPM [SR1]\n");
-            PRINT("PUSHM [SR1]\n\n");
+            PRINT("POPR %s\n", MEM_REG);
+            PRINT("POPM [%s]\n", MEM_REG);
+            PRINT("PUSHM [%s]\n\n", MEM_REG);
 
             return;
         }
@@ -258,7 +263,7 @@ static void CompileNode(TreeNode* node, FILE* file, Compilator* compilator)
         {
             if(!node->left || !node->left->left || !node->left->right || !node->left->left->left || !node->left->left->right) ERROR;
 
-            PRINT("\nPUSH 80\n");
+            PRINT("\nPUSH %lu\n", SCREEN_WIDTH);
 
             CompileNode(node->left->left->right, file, compilator);
 
@@ -267,11 +272,11 @@ static void CompileNode(TreeNode* node, FILE* file, Compilator* compilator)
             CompileNode(node->left->left->left, file, compilator);
 
             PRINT("ADD\n");
-            PRINT("POPR SR1\n");
+            PRINT("POPR %s\n", MEM_REG);
 
             CompileNode(node->left->right, file, compilator);
 
-            PRINT("POPM [SR1]\n");
+            PRINT("POPM [%s]\n", MEM_REG);
 
             return;
         }
@@ -378,10 +383,10 @@ static void CompileNode(TreeNode* node, FILE* file, Compilator* compilator)
 
             CompileNode(node->right, file, compilator);
 
-            PRINT("PUSHR SR2            # INCREASING RECURSION DEPTH\n");
+            PRINT("PUSHR %s            # INCREASING RECURSION DEPTH\n", SCOPE_REG);
             PRINT("PUSH %lu\n", GlobalNametableVariableCount());
             PRINT("ADD\n");
-            PRINT("POPR SR2\n");
+            PRINT("POPR %s\n", SCOPE_REG);
             PRINT("CALL %s\n", name);
 
             return;
@@ -397,28 +402,23 @@ static void CompileNode(TreeNode* node, FILE* file, Compilator* compilator)
         {
             if(node->left)  CompileNode(node->left, file, compilator);
 
-            PRINT("PUSHR SR2                # DECREASING RECURSION DEPTH \n");
+            PRINT("PUSHR %s                # DECREASING RECURSION DEPTH \n", SCOPE_REG);
             PRINT("PUSH %lu\n", GlobalNametableVariableCount());
             PRINT("SUB\n");
-            PRINT("POPR SR2\n");
+            PRINT("POPR %s\n", SCOPE_REG);
             PRINT("RET\n\n");
 
             return;
         }
         case OP_EMPTY:
-            ERROR;
         case OP_COMMA:
-            ERROR;
         case OP_BRACKET_OPEN:
-            ERROR;
         case OP_BRACKET_CLOSE:
-            ERROR;
         case OP_FBRACKET_OPEN:
-            ERROR;
         case OP_FBRACKET_CLOSE:
-            ERROR;
         default:
         {
+            ERROR;
             return;
         }
     }
