@@ -294,3 +294,8 @@ bool CheckOperation(TreeNode* node, Operation op)
 {
     return node && node->type == NODE_OPERATION && node->value.operation == op;
 }
+
+bool CheckType(TreeNode* node, NodeType type)
+{
+    return node && node->type == type;
+}

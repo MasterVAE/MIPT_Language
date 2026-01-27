@@ -90,7 +90,7 @@ TreeNode* CopyNode(TreeNode* node);
 void SetParents(Tree* tree);
 
 bool CheckOperation(TreeNode* node, Operation op);
-
+bool CheckType(TreeNode* node, NodeType type);
 
 static const size_t BUFFER_SIZE = 128;
 

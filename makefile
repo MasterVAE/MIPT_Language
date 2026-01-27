@@ -89,9 +89,9 @@ include makefiles/frontend.mk
 include makefiles/midlend.mk
 include makefiles/backend.mk
 
-all: frontend_b backend_b
+all: frontend_b midlend_b backend_b
 
-run: frontend backend
+run: frontend midlend backend
 	@./asm.out
 	@./spu.out
 

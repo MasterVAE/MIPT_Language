@@ -47,7 +47,7 @@ int main(int argc, char** argv)
 
     TreeDestroy(tree);
 
-    printf("Descent complete\n");
+    printf("Frontend complete\n");
 
     return EXIT_SUCCESS;
 }

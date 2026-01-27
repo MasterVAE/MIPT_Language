@@ -36,7 +36,7 @@ int main(int argc, char** argv)
 
     TreeDestroy(tree);
 
-    printf("Compilation complete\n");
+    printf("Backend complete\n");
 
     return EXIT_SUCCESS;
 }
