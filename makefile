@@ -85,12 +85,13 @@ endif
 
 export OBJ_DIR OBJ_RELEASE TARGET_DIR SOURCE_DIR CC DEBUG_FLAGS CFLAGS RELEASE_FLAGS
 
-include makefiles/compilator.mk
-include makefiles/descent.mk
+include makefiles/frontend.mk
+include makefiles/midlend.mk
+include makefiles/backend.mk
 
-all: compilator_b descent_b
+all: frontend_b backend_b
 
-run: descent compilator
+run: frontend backend
 	@./asm.out
 	@./spu.out
 
