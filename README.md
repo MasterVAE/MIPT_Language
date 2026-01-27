@@ -1,36 +1,38 @@
 # Ultimate Programming Language
-Fully functional C-like programming language based on C
+С-подобный язык программирования
 
-## Prerequisites
+## Требования
 
-- C++ compiler
-- make
-- Graphviz
+- GCC версии 15.2.1 и выше
+- GNU make версии 4.4.1 и выше
+- dot grapwiz версии 14.0.5 и выше
 
-## Build
+## Запуск
 
 ```bash
 make all
 ```
-or
+или
 ```bash
-make descent_b
-make compilator_b
+make frontend_b
+make midlend_b
+make backend_b
 ```
 
-## Usage 
+## Использование
 
 ```bash
 make run
 ```
-or
+или
 ```bash
-make descent
-make compilator
+make frontend
+make midlend
+make backend
 ./asm.out
 ./spu.out
 ```
-or
+или
 ```bash
 ./build/descent.out <code filename> <tree filename>
 ./build/compilator.out <tree filename> <out filename>
@@ -38,12 +40,30 @@ or
 ./spu.out
 ```
 
-## Notes
+## Описание
 
-This project consist of **reader** and **compilator**. Reader use **recursive descent** to read user's program and process it into tree structure.
+Проект состоит из **frontend**, **midlend** и **backend**.
 
-Example of tree:
+На этапе **frontend** программа использует **рекурсивный спуск** чтобы преобразовать программу пользователя в структуру дерева. На этом этапе улавливается большая часть ошибок.
+
+На этапе **midlend** программа оптимизирует полученное ранее дерево, выполняя, например **свертку констант** и **dead code ellimination**.
+
+Пример программы и ее дерева после оптмизации:
+
+```
+fact(n)   #recursive factorial function
+{
+    if(n == 1)
+    {
+        return 1;
+    };
+
+    return n * fact(n - 1);
+};
+
+out(fact(in));
+```
 
 ![generated ](examples/images/tree1.png)
 
-Then tree transfers to **compilator** which process tree into Assembler code for **SPU** (Soft Processor Unit) from previous project.
+Далее дерево передается в **backend**, где переводится в Ассемблерный код для [**SPU** (Soft Processor Unit)](https://github.com/MasterVAE/MIPT_Stack)
