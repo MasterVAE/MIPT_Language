@@ -15,7 +15,7 @@ make all
 или
 ```bash
 make frontend_b
-make midlend_b
+make middlend_b
 make backend_b
 ```
 
@@ -27,7 +27,7 @@ make run
 или
 ```bash
 make frontend
-make midlend
+make middlend
 make backend
 ./asm.out
 ./spu.out
@@ -42,11 +42,11 @@ make backend
 
 ## Описание
 
-Проект состоит из **frontend**, **midlend** и **backend**.
+Проект состоит из **frontend**, **middlend** и **backend**.
 
 На этапе **frontend** программа использует **рекурсивный спуск** чтобы преобразовать программу пользователя в структуру дерева. На этом этапе улавливается большая часть ошибок.
 
-На этапе **midlend** программа оптимизирует полученное ранее дерево, выполняя, например **свертку констант** и **dead code ellimination**.
+На этапе **middlend** программа оптимизирует полученное ранее дерево, выполняя, например **свертку констант** и **dead code ellimination**.
 
 Пример программы и ее дерева после оптимизации:
 

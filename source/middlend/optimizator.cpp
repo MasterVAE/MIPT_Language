@@ -21,6 +21,10 @@ static void OptimizeNode(TreeNode* node)
     if(!node) return;
     OptimizeNode(node->left);
     OptimizeNode(node->right);
+
+    ConstantFolding(node);
+
+    DeadCodeElimination(node);
 }
 
 static bool IsMathOperation(TreeNode* node)

@@ -86,12 +86,12 @@ endif
 export OBJ_DIR OBJ_RELEASE TARGET_DIR SOURCE_DIR CC DEBUG_FLAGS CFLAGS RELEASE_FLAGS
 
 include makefiles/frontend.mk
-include makefiles/midlend.mk
+include makefiles/middlend.mk
 include makefiles/backend.mk
 
-all: frontend_b midlend_b backend_b
+all: frontend_b middlend_b backend_b
 
-run: frontend midlend backend
+run: frontend middlend backend
 	@./asm.out
 	@./spu.out
 
