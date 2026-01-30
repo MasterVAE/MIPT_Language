@@ -1,5 +1,5 @@
 SOURCES_BACKEND = backend/main.cpp backend/compilator.cpp tree.cpp op_data.cpp tree_logger.cpp\
-						library.cpp scope.cpp
+						library.cpp backend/scope.cpp
 TARGET_BACKEND = $(TARGET_DIR)/backend.out
 
 OBJECTS_BACKEND = $(addprefix $(OBJ_DIR)/, $(SOURCES_BACKEND:.cpp=.o))

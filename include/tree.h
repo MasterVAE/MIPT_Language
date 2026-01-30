@@ -67,6 +67,7 @@ struct TreeNode
     bool correct;
 
     Nametable* nametable;
+    Nametable* parent_nametable;
 
     TreeNode* left;
     TreeNode* right;

@@ -1,5 +1,5 @@
 SOURCES_FRONTEND = frontend/main.cpp frontend/read.cpp frontend/tokenizator.cpp verificator.cpp\
-						tree.cpp op_data.cpp tree_logger.cpp library.cpp scope.cpp
+						tree.cpp op_data.cpp tree_logger.cpp library.cpp
 TARGET_FRONTEND = $(TARGET_DIR)/frontend.out
 
 OBJECTS_FRONTEND = $(addprefix $(OBJ_DIR)/, $(SOURCES_FRONTEND:.cpp=.o))

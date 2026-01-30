@@ -55,7 +55,7 @@ void CompileTree(Tree* tree, FILE* file)
 
     DestroyCompilator(compilator);
 
-    ClearNametables(tree->root);
+    ClearNametables(tree);
 }
 
 static void CompileSystemCode(FILE* file)
@@ -117,7 +117,7 @@ static void CompileFunctions(FILE* file, Compilator* compilator)
         CompileNode(func->right->right, file, compilator);
 
         PRINT("PUSHR %s                # DECREASING RECURSION DEPTH \n", SCOPE_REG);
-        PRINT("PUSH %lu\n", GlobalNametableVariableCount());
+        PRINT("PUSH %lu\n", FrameSize(func, compilator));
         PRINT("SUB\n");
         PRINT("POPR %s\n", SCOPE_REG);
         PRINT("RET\n\n");
@@ -140,7 +140,7 @@ static void CompileArguments(TreeNode* node, FILE* file, Compilator* compilator)
     {
         const char* name = node->left->value.identificator;
 
-        int i = SearchFromLocalToGlobalNametable(node->nametable, name);
+        int i = VariableOffcet(node);
         if(i == -1) ERROR;
 
         PRINT("\nPUSH %d                 #VARIABLE %s AS ARGUMENT\n", i, name);
@@ -183,7 +183,7 @@ static void CompileNode(TreeNode* node, FILE* file, Compilator* compilator)
         {
             const char* name = node->left->value.identificator;
 
-            int i = SearchFromLocalToGlobalNametable(node->nametable, name);
+            int i = VariableOffcet(node);
             if(i == -1) ERROR;
 
             PRINT("\nPUSH %d                 #VARIABLE %s\n", i, name);
@@ -232,7 +232,7 @@ static void CompileNode(TreeNode* node, FILE* file, Compilator* compilator)
 
             const char* name = node->left->left->value.identificator;
 
-            int i = SearchFromLocalToGlobalNametable(node->left->nametable, name);
+            int i = VariableOffcet(node->left);
             if(i == -1) ERROR;
 
             CompileNode(node->right, file, compilator);
@@ -384,7 +384,7 @@ static void CompileNode(TreeNode* node, FILE* file, Compilator* compilator)
             CompileNode(node->right, file, compilator);
 
             PRINT("PUSHR %s            # INCREASING RECURSION DEPTH\n", SCOPE_REG);
-            PRINT("PUSH %lu\n", GlobalNametableVariableCount());
+            PRINT("PUSH %lu\n", FrameSize(node, compilator));
             PRINT("ADD\n");
             PRINT("POPR %s\n", SCOPE_REG);
             PRINT("CALL %s\n", name);
@@ -403,7 +403,7 @@ static void CompileNode(TreeNode* node, FILE* file, Compilator* compilator)
             if(node->left)  CompileNode(node->left, file, compilator);
 
             PRINT("PUSHR %s                # DECREASING RECURSION DEPTH \n", SCOPE_REG);
-            PRINT("PUSH %lu\n", GlobalNametableVariableCount());
+            PRINT("PUSH %lu\n", node->parent_nametable->variable_count);
             PRINT("SUB\n");
             PRINT("POPR %s\n", SCOPE_REG);
             PRINT("RET\n\n");
