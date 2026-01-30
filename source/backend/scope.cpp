@@ -301,5 +301,5 @@ int VariableOffcet(TreeNode* node)
 
     const char* scope_name = node->nametable->variables[i].scope_name;
 
-    return FindVarScopeInNametable(node->parent_nametable, scope_name);
+    return FindVarScopeInNametable(node->parent_nametable, scope_name) + 2;
 }

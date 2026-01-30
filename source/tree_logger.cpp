@@ -6,7 +6,7 @@
 #include "tree_logger.h"
 #include "op_data.h"
 
-#define DEBUG_POINTER
+// #define DEBUG_POINTER
 
 static const char* const DOT_FILENAME = "files/dot.dt";
 
