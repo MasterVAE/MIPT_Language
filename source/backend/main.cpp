@@ -2,6 +2,7 @@
 #include "tree_logger.h"
 #include "compilator.h"
 
+//FIXME загнать в асм номера строк
 int main(int argc, char** argv)
 {
     if(argc < 3)
